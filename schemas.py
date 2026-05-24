@@ -1,41 +1,60 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-from typing import Optional
+from datetime import datetime
 
-class User(BaseModel):
-    name: str
-    email: str
-    id: int
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
 
-class User_response(BaseModel):
-    name: str
-    email: str
+
+class UserBase(BaseModel):
+    username: str = Field(min_length=1, max_length=255)
+    email: EmailStr = Field(min_length=1, max_length=150)
+
+
+class UserCreate(UserBase):
+    password: str = Field(min_length=8, max_length=255)
+
+class UserPublic(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
-    message: str
+    username: str
+    image_file: str | None
+    image_path: str
+
+class UserPrivate(UserPublic):
+    email: EmailStr
+
+
 
 class UserUpdate(BaseModel):
-    name: Optional[str] = None
-    email: Optional[str] = None
+    username: str | None = Field(default=None, min_length=1, max_length=255)
+    email: EmailStr | None = Field(default=None, min_length=1, max_length=150)
+    image_file: str | None = Field(default=None, min_length=1, max_length=255)
 
-class UserDeleteResponse(BaseModel):
-    message: str
 
-class Post(BaseModel):
-    title: str
-    content: str
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class PostBase(BaseModel):
+    title: str = Field(min_length=1, max_length=255)
+    content: str = Field(min_length=1, max_length=2000)
+
+
+class PostCreate(PostBase):
     id: int
+
+
+class PostUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=255)
+    content: str | None = Field(default=None, min_length=1, max_length=2000)
+
 
 class PostResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
     title: str
     content: str
-    id: int
-    message: str
-
-
-class PostDeleteResponse(BaseModel):
-    message: str
-
-class UpdatePost(BaseModel):
-    title: Optional[str] = None
-    content: Optional[str] = None
-
+    date_posted: datetime
+    author_id: int
+    author: UserPublic | None

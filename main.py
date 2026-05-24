@@ -1,113 +1,169 @@
-from fastapi import FastAPI
-from schemas import User, User_response, UserUpdate, UserDeleteResponse, Post, PostResponse, PostDeleteResponse, UpdatePost
-from fastapi import HTTPException
+from contextlib import asynccontextmanager
+from typing import Annotated
 
-app = FastAPI()
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.exception_handlers import (
+    http_exception_handler,
+    request_validation_exception_handler,
+)
+from fastapi.exceptions import RequestValidationError
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-banco_de_dados = []
-lista_de_post = []
+import models
+from database import Base, engine, get_db
+from routers import posts, users
 
 
-@app.get("/")
-def read_root():
-        return {"bem vindo": "my api"}
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # Startup
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    # Shutdown
+    await engine.dispose()
 
-@app.post("/users", response_model=User_response)
-async def create_user(dados_do_usuario: User):
-    banco_de_dados.append(dados_do_usuario)
 
-    resposta = dados_do_usuario.model_dump()
-    resposta["message"] = "created user successfully"
-    return resposta
+app = FastAPI(lifespan=lifespan)
 
-@app.get("/users", response_model=list[User])
-def get_users():
-    return banco_de_dados
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/media", StaticFiles(directory="media"), name="media")
 
-@app.get("/users/{user_id}", response_model=User)
-def get_user(user_id: int):
-    for user in banco_de_dados:
-        if user.id == user_id:
-            return user
+templates = Jinja2Templates(directory="templates")
 
-    raise HTTPException(
-        status_code=404,
-        detail="User not found"
-     )
+app.include_router(users.router, prefix="/api/users", tags=["users"])
+app.include_router(posts.router, prefix="/api/posts", tags=["posts"])
 
-@app.patch("/users/{user_id}", response_model=User)
-async def update_user(user_id: int, user_update: UserUpdate):
-    for user in banco_de_dados:
-        if user.id == user_id:
-            if user_update.name is not None:
-                user.name = user_update.name
-            if user_update.email is not None:
-                user.email = user_update.email
-            return user
 
-    raise HTTPException(
-        status_code=404,
-        detail="User not found"
-     )
-
-@app.delete("/users/{user_id}", response_model=UserDeleteResponse)
-async def delete_user(user_id: int):
-    for user in banco_de_dados:
-        if user.id == user_id:
-            banco_de_dados.remove(user)
-            return {"message": "User deleted successfully"}
-
-    raise HTTPException(
-        status_code=404,
-        detail="User not found"
-     )
-
-@app.post("/posts", response_model=PostResponse)
-async def create_post(post: Post):
-    lista_de_post.append(post)
-    resposta = post.model_dump()
-    resposta["message"] = "Post created successfully"
-    return resposta
-
-@app.get("/posts", response_model=list[Post])
-def get_posts():
-    return lista_de_post
-
-@app.get("/posts/{post_id}", response_model=Post)
-def get_post(post_id: int):
-    for post in lista_de_post:
-        if post.id == post_id:
-            return post
-    raise HTTPException(
-        status_code=404,
-        detail="Post not found"
+@app.get("/", include_in_schema=False, name="home")
+@app.get("/posts", include_in_schema=False, name="posts")
+async def home(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
+    result = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .order_by(models.Post.date_posted.desc()),
+    )
+    posts = result.scalars().all()
+    return templates.TemplateResponse(
+        request,
+        "home.html",
+        {"posts": posts, "title": "Home"},
     )
 
-@app.delete("/posts/{post_id}", response_model=PostDeleteResponse)
-async def delete_post(post_id: int):
-    for post in lista_de_post:
-        if post.id == post_id:
-            lista_de_post.remove(post)
-            return {"message": "Post deleted successfully"}
 
-    raise HTTPException(
-        status_code=404,
-        detail="Post not found"
-     )
-
-@app.patch("/posts/{post_id}", response_model=Post)
-async def update_post(post_id: int, post_update: UpdatePost):
-    for post in lista_de_post:
-        if post.id == post_id:
-            if post_update.title is not None:
-                post.title = post_update.title
-            if post_update.content is not None:
-                post.content = post_update.content
-            return post
-
-    raise HTTPException(
-        status_code=404,
-        detail="Post not found"
-     )
+@app.get("/posts/{post_id}", include_in_schema=False)
+async def post_page(
+    request: Request,
+    post_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    result = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .where(models.Post.id == post_id),
+    )
+    post = result.scalars().first()
+    if post:
+        title = post.title[:50]
+        return templates.TemplateResponse(
+            request,
+            "post.html",
+            {"post": post, "title": title},
+        )
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
 
+@app.get("/users/{user_id}/posts", include_in_schema=False, name="user_posts")
+async def user_posts_page(
+    request: Request,
+    user_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    result = await db.execute(select(models.User).where(models.User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    result = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .where(models.Post.user_id == user_id)
+        .order_by(models.Post.date_posted.desc()),
+    )
+    posts = result.scalars().all()
+    return templates.TemplateResponse(
+        request,
+        "user_posts.html",
+        {"posts": posts, "user": user, "title": f"{user.username}'s Posts"},
+    )
+
+
+@app.get("/login", include_in_schema=False)
+async def login_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "login.html",
+        {"title": "Login"},
+    )
+
+
+@app.get("/register", include_in_schema=False)
+async def register_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "register.html",
+        {"title": "Register"},
+    )
+
+
+@app.exception_handler(StarletteHTTPException)
+async def general_http_exception_handler(
+    request: Request,
+    exception: StarletteHTTPException,
+):
+    if request.url.path.startswith("/api"):
+        return await http_exception_handler(request, exception)
+
+    message = (
+        exception.detail
+        if exception.detail
+        else "An error occurred. Please check your request and try again."
+    )
+
+    return templates.TemplateResponse(
+        request,
+        "error.html",
+        {
+            "status_code": exception.status_code,
+            "title": exception.status_code,
+            "message": message,
+        },
+        status_code=exception.status_code,
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request,
+    exception: RequestValidationError,
+):
+    if request.url.path.startswith("/api"):
+        return await request_validation_exception_handler(request, exception)
+
+    return templates.TemplateResponse(
+        request,
+        "error.html",
+        {
+            "status_code": status.HTTP_422_UNPROCESSABLE_CONTENT,
+            "title": status.HTTP_422_UNPROCESSABLE_CONTENT,
+            "message": "Invalid request. Please check your input and try again.",
+        },
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+    )
