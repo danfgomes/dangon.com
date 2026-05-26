@@ -12,7 +12,9 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     image_file: Mapped[str] = mapped_column(String(255), nullable=True)
 
-    posts: Mapped[list["Post"]] = relationship(back_populates="author", cascade="all, delete-orphan")
+    posts: Mapped[list["Post"]] = relationship(
+        back_populates="author", cascade="all, delete-orphan"
+    )
 
     @property
     def image_path(self) -> str:
@@ -33,8 +35,7 @@ class Post(Base):
         index=True,
     )
     date_posted: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
     author: Mapped["User"] = relationship(back_populates="posts")

@@ -11,6 +11,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=255)
 
+
 class UserPublic(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
@@ -19,9 +20,9 @@ class UserPublic(UserBase):
     image_file: str | None
     image_path: str
 
+
 class UserPrivate(UserPublic):
     email: EmailStr
-
 
 
 class UserUpdate(BaseModel):
