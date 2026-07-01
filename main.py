@@ -8,7 +8,7 @@ from routers import users, posts
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print(" [LIFESPAN] Iniciando a conexão e criando tabelas...")
+    print(" [LIFESPAN] Iniciando a conexão e criando tabelas..")
     async with engine.begin() as conn:
 
         await conn.run_sync(models.Base.metadata.create_all)

@@ -29,6 +29,7 @@ class UserUpdate(BaseModel):
     username: str | None = Field(default=None, min_length=1, max_length=255)
     email: EmailStr | None = Field(default=None, min_length=1, max_length=150)
     image_file: str | None = Field(default=None, min_length=1, max_length=255)
+    password: str | None = Field(default=None, min_length=8, max_length=255)
 
 
 class Token(BaseModel):
