@@ -8,13 +8,14 @@ import pwdlib
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from src.models import User
+from src.database import get_db
 
 
 from src.config import settings
 
 password_hasher = PasswordHash.recommended()
 
-DUMMY_HASH = "argon2id$v=19$m=65536,t=3,p=4$Ke04ppvRwTWi1kkItmHb9g$r7yis/cN3wg/UpebnSI3kY98UQuEu+7EMvCTyRzygX4"
+DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$Ke04ppvRwTWi1kkItmHb9g$r7yis/cN3wg/UpebnSI3kY98UQuEu+7EMvCTyRzygX4"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
@@ -27,16 +28,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return password_hasher.verify(plain_password, hashed_password)
 
 
-async def authenticate_user(db: AsyncSession, username: str, password: str):
+async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
 
-    user = (await db.execute(select(User).where(User.username == username))).scalars().first()
+    user = (await db.execute(select(User).where(User.email == email))).scalars().first()
 
     if not user:
         verify_password(password, DUMMY_HASH)
-        return False
+        return None
 
     if not verify_password(password, user.password):
-        return False
+        return None
 
     return user
 
@@ -74,7 +75,7 @@ def verify_access_token(token: str) -> str | None:
         return payload.get("sub")
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> int:
+async def get_current_user(token: str = Depends(oauth2_scheme), db_get = Depends(get_db)) -> int:
     user_id = verify_access_token(token)
 
     try:

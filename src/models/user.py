@@ -6,7 +6,7 @@ from src.database import Base
 
 
 if TYPE_CHECKING:
-    from src.models.user import User
+    from src.models.post import Post
 
 
 class User(Base):
