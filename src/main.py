@@ -9,25 +9,14 @@ from fastapi.responses import HTMLResponse
 
 import src.models
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    print("Iniciando a conexo e criando tabelas..")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    print(" [LIFESPAN] Tabelas criadas com sucesso!")
-
-    yield
+app = FastAPI()
 
 
-app = FastAPI(lifespan=lifespan)
 
 app.include_router(users.router)
 app.include_router(posts.router)
 
 
-@app.get("/", status_code=HTTPStatus.OK, response_class=HTMLResponse)
+@app.get("/", status_code=HTTPStatus.OK, )
 def init():
-    return """
-    <h1>API rodando com sucesso!</h1>
-    """
+    return

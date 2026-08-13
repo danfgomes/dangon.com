@@ -10,6 +10,8 @@ if TYPE_CHECKING:
     from src.models.user import User
 
 
+
+
 class Post(Base):
     __tablename__ = "posts"
 

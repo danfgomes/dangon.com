@@ -43,7 +43,7 @@ class PostBase(BaseModel):
 
 
 class PostCreate(PostBase):
-    id: int
+    pass
 
 
 class PostUpdate(BaseModel):

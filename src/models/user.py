@@ -22,6 +22,7 @@ class User(Base):
         back_populates="author", cascade="all, delete-orphan"
     )
 
+
     @property
     def image_path(self) -> str:
         if self.image_file:

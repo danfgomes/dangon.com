@@ -12,7 +12,6 @@ from src.database import get_db
 
 
 from src.config import settings
-
 password_hasher = PasswordHash.recommended()
 
 DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$Ke04ppvRwTWi1kkItmHb9g$r7yis/cN3wg/UpebnSI3kY98UQuEu+7EMvCTyRzygX4"
@@ -75,7 +74,9 @@ def verify_access_token(token: str) -> str | None:
         return payload.get("sub")
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db_get = Depends(get_db)) -> int:
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), db_get=Depends(get_db)
+) -> int:
     user_id = verify_access_token(token)
 
     try:
@@ -88,4 +89,3 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db_get = Depends
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-

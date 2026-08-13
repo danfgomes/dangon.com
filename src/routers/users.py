@@ -1,8 +1,12 @@
+from logging import raiseExceptions
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
+
 
 from src.auth import (
     create_access_token,
@@ -11,7 +15,7 @@ from src.auth import (
     verify_password,
     verify_access_token,
     get_current_user,
-    authenticate_user
+    authenticate_user,
 )
 
 
@@ -40,6 +44,7 @@ async def create_user(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
     query = select(User).where(
         (User.email == user_in.email) | (User.username == user_in.username)
     )
+
     result = await db.execute(query)
     existing_user = result.scalars().first()
 
@@ -61,8 +66,14 @@ async def create_user(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
 
 @router.patch("/{user_id}", response_model=UserPublic)
 async def update_user(
-    user_id: int, user_update: UserUpdate, db: AsyncSession = Depends(get_db)
+    user_id: int, user_update: UserUpdate, db: AsyncSession = Depends(get_db), user_authenticate : int = Depends(get_current_user)
 ):
+
+    if user_authenticate != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access blocked. The resource belongs to another account."
+        )
 
     query = select(User).where(User.id == user_id)
     result = await db.execute(query)
@@ -80,15 +91,24 @@ async def update_user(
 
     for key, value in update_data.items():
         setattr(db_user, key, value)
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException (status_code=status.HTTP_409_CONFLICT,detail="Dado inoperante!.")
 
-    await db.commit()
     await db.refresh(db_user)
-
     return db_user
 
 
 @router.get("/{user_id}", response_model=UserPublic)
-async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
+async def get_user(user_id: int, db: AsyncSession = Depends(get_db), user_authenticate = Depends(get_current_user)):
+
+    if user_authenticate != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access blocked. The resource belongs to another account."
+        )
 
     query = select(User).where(User.id == user_id)
 
@@ -123,8 +143,7 @@ async def login(
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
-    db: AsyncSession = Depends(get_db),
-    current_user_id: str = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db), current_user_id: str = Depends(get_current_user)
 ):
 
     query = select(User).where(User.id == int(current_user_id))
