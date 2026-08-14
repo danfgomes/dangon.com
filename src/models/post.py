@@ -8,8 +8,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from src.models.user import User
-
-
+    from src.models.comment import Comment
 
 
 class Post(Base):
@@ -27,4 +26,5 @@ class Post(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
-    author: Mapped[User] = relationship(back_populates="posts")
+    author: Mapped["User"] = relationship(back_populates="posts")
+    comments: Mapped[list["Comment"]]  = relationship(back_populates="post", cascade="all, delete-orphan")

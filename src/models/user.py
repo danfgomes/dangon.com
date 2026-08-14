@@ -7,6 +7,7 @@ from src.database import Base
 
 if TYPE_CHECKING:
     from src.models.post import Post
+    from src.models.comment import Comment
 
 
 class User(Base):
@@ -21,6 +22,8 @@ class User(Base):
     posts: Mapped[list["Post"]] = relationship(
         back_populates="author", cascade="all, delete-orphan"
     )
+
+    comments: Mapped[list["Comment"]] = relationship(back_populates="author", cascade="all, delete-orphan")
 
 
     @property
