@@ -14,6 +14,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    is_admin: Mapped[bool] = mapped_column(default=False, server_default="false", nullable=False)
     username: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     image_file: Mapped[str] = mapped_column(String(255), nullable=True)
@@ -23,8 +24,9 @@ class User(Base):
         back_populates="author", cascade="all, delete-orphan"
     )
 
-    comments: Mapped[list["Comment"]] = relationship(back_populates="author", cascade="all, delete-orphan")
-
+    comments: Mapped[list["Comment"]] = relationship(
+        back_populates="author", cascade="all, delete-orphan"
+    )
 
     @property
     def image_path(self) -> str:
