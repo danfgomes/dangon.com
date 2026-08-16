@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from idlelib import query
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -9,15 +10,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from src.models import User
 from src.database import get_db
+from typing import TypedDict, cast
 
 
 from src.config import settings
+
 password_hasher = PasswordHash.recommended()
 
 DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$Ke04ppvRwTWi1kkItmHb9g$r7yis/cN3wg/UpebnSI3kY98UQuEu+7EMvCTyRzygX4"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
+class TokenPayload(TypedDict):
+    sub: str
+    is_admin: bool
 
 def hash_password(password: str) -> str:
     return password_hasher.hash(password)
@@ -59,36 +65,55 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     return encoded_jwt
 
 
-def verify_access_token(token: str) -> str | None:
+
+def verify_access_token(token: str) -> TokenPayload | None:
 
     try:
         payload = jwt.decode(
             token,
             settings.SECRET_KEY.get_secret_value(),
             algorithms=[settings.algorithm],
-            options={"require": ["exp", "sub"]},
+            options={"require": ["exp", "sub", "is_admin"]},
         )
     except jwt.InvalidTokenError:
         return None
     else:
-        return {
-            "sub": str(payload.get("sub")),
-            "is_admin": bool(payload.get("is_admin"))
-        }
+        return cast(TokenPayload,{
+            "sub": payload["sub"],
+            "is_admin": payload["is_admin"]
+        })
 
 
-async def get_current_user(
-    token: str = Depends(oauth2_scheme), db_get=Depends(get_db)
-) -> int:
-    user_id = verify_access_token(token)
-
-    try:
-        if not user_id:
-            raise ValueError()
-        return int(user_id)
-    except ValueError:
+async def get_token_payload(token: str = Depends(oauth2_scheme)) -> TokenPayload:
+    token_data = verify_access_token(token)
+    if not token_data:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    return token_data
+
+
+
+async def get_current_user(token_data: TokenPayload = Depends(get_token_payload)) -> int:
+    return int(token_data["sub"])
+
+
+async def get_admin_user(token_data: TokenPayload = Depends(get_token_payload), db: AsyncSession = Depends(get_db)) -> int:
+    user = await db.execute(select(User).where(User.id == int(token_data["sub"])))
+    user = user.scalars().first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        )
+
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not an administrator",
+        )
+
+    return int(user.id)
