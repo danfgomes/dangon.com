@@ -7,7 +7,7 @@ from src.models import User, Post
 from src.database import get_db
 
 from src.schemas.schemas import PostResponse, PostCreate, PostUpdate
-from src.auth import oauth2_scheme, verify_access_token, get_current_user
+from src.auth import oauth2_scheme, verify_access_token, get_current_user, get_admin_user
 
 router = APIRouter(
     prefix="/posts",
@@ -21,23 +21,24 @@ router = APIRouter(
 async def create_post(
     post: PostCreate,
     db: AsyncSession = Depends(get_db),
-    user_id: int = Depends(get_current_user),
+    current_user_id: int = Depends(get_admin_user),
 ):
 
-    new_post = Post(**post.model_dump(), author_id=user_id)
+    new_post = Post(**post.model_dump(), author_id=current_user_id)
 
     db.add(new_post)
-    await db.commit()
-    await db.refresh(new_post)
+    await db.flush()
 
     query = (
         select(Post).options(selectinload(Post.author)).where(Post.id == new_post.id)
     )
+
+
     result = await db.execute(query)
     created_post = result.scalars().first()
+    await db.commit()
 
     return created_post
-
 
 
 @router.get("/", response_model=list[PostResponse])
@@ -50,6 +51,7 @@ async def get_all_posts(db: AsyncSession = Depends(get_db)):
     posts = result.scalars().all()
 
     return posts
+
 
 @router.get("/{post_id}", response_model=PostResponse)
 async def get_post(post_id: int, db: AsyncSession = Depends(get_db)):
@@ -65,6 +67,8 @@ async def get_post(post_id: int, db: AsyncSession = Depends(get_db)):
         )
 
     return post
+
+
 @router.patch("/{post_id}", response_model=PostResponse)
 async def update_post(
     post_id: int,
