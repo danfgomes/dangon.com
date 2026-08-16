@@ -12,11 +12,13 @@ import src.models
 app = FastAPI()
 
 
-
 app.include_router(users.router)
 app.include_router(posts.router)
 
 
-@app.get("/", status_code=HTTPStatus.OK, )
+@app.get(
+    "/",
+    status_code=HTTPStatus.OK,
+)
 def init():
     return

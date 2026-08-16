@@ -66,13 +66,16 @@ async def create_user(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
 
 @router.patch("/{user_id}", response_model=UserPublic)
 async def update_user(
-    user_id: int, user_update: UserUpdate, db: AsyncSession = Depends(get_db), user_authenticate : int = Depends(get_current_user)
+    user_id: int,
+    user_update: UserUpdate,
+    db: AsyncSession = Depends(get_db),
+    user_authenticate: int = Depends(get_current_user),
 ):
 
     if user_authenticate != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access blocked. The resource belongs to another account."
+            detail="Access blocked. The resource belongs to another account.",
         )
 
     query = select(User).where(User.id == user_id)
@@ -95,19 +98,25 @@ async def update_user(
         await db.commit()
     except IntegrityError:
         await db.rollback()
-        raise HTTPException (status_code=status.HTTP_409_CONFLICT,detail="Dado inoperante!.")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Dado inoperante!."
+        )
 
     await db.refresh(db_user)
     return db_user
 
 
 @router.get("/{user_id}", response_model=UserPublic)
-async def get_user(user_id: int, db: AsyncSession = Depends(get_db), user_authenticate = Depends(get_current_user)):
+async def get_user(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    user_authenticate=Depends(get_current_user),
+):
 
     if user_authenticate != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access blocked. The resource belongs to another account."
+            detail="Access blocked. The resource belongs to another account.",
         )
 
     query = select(User).where(User.id == user_id)

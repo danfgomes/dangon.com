@@ -11,3 +11,15 @@ wheels/
 
 # Environment variables
 .env
+
+# Caches de ferramentas de qualidade e testes
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Configurações de IDEs e Editores
+.idea/
+.vscode/
+*.swp
+*.swo
