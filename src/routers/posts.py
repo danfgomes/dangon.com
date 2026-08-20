@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -46,12 +46,14 @@ async def create_post(
 
 
 @router.get("/", response_model=list[PostResponse])
-async def get_all_posts(db: AsyncSession = Depends(get_db)):
+async def get_all_posts(
+        limit: int = Query(default=10, ge=1, le=100),
+        offset: int = Query(default=0, ge=0),
+        db: AsyncSession = Depends(get_db)):
 
-    query = select(Post).options(selectinload(Post.author)).limit(6).offset(0)
+    query = select(Post).options(selectinload(Post.author)).limit(limit).offset(offset)
 
     result = await db.execute(query)
-
     posts = result.scalars().all()
 
     return posts
