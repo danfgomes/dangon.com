@@ -6,8 +6,13 @@ from sqlalchemy.orm import selectinload
 from src.models import User, Post
 from src.database import get_db
 
-from src.schemas.schemas import PostResponse, PostCreate, PostUpdate
-from src.auth import oauth2_scheme, verify_access_token, get_current_user, get_admin_user
+from src.schemas.post import PostCreate, PostResponse, PostUpdate
+from src.auth import (
+    oauth2_scheme,
+    verify_access_token,
+    get_current_user,
+    get_admin_user,
+)
 
 router = APIRouter(
     prefix="/posts",
@@ -32,7 +37,6 @@ async def create_post(
     query = (
         select(Post).options(selectinload(Post.author)).where(Post.id == new_post.id)
     )
-
 
     result = await db.execute(query)
     created_post = result.scalars().first()

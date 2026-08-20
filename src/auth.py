@@ -21,9 +21,11 @@ DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$Ke04ppvRwTWi1kkItmHb9g$r7yis/cN3wg/
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
+
 class TokenPayload(TypedDict):
     sub: str
     is_admin: bool
+
 
 def hash_password(password: str) -> str:
     return password_hasher.hash(password)
@@ -65,7 +67,6 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     return encoded_jwt
 
 
-
 def verify_access_token(token: str) -> TokenPayload | None:
 
     try:
@@ -78,10 +79,9 @@ def verify_access_token(token: str) -> TokenPayload | None:
     except jwt.InvalidTokenError:
         return None
     else:
-        return cast(TokenPayload,{
-            "sub": payload["sub"],
-            "is_admin": payload["is_admin"]
-        })
+        return cast(
+            TokenPayload, {"sub": payload["sub"], "is_admin": payload["is_admin"]}
+        )
 
 
 async def get_token_payload(token: str = Depends(oauth2_scheme)) -> TokenPayload:
@@ -95,25 +95,21 @@ async def get_token_payload(token: str = Depends(oauth2_scheme)) -> TokenPayload
     return token_data
 
 
+async def get_current_user(
+    token_data: TokenPayload = Depends(get_token_payload),
+) -> int:
 
-async def get_current_user(token_data: TokenPayload = Depends(get_token_payload)) -> int:
     return int(token_data["sub"])
 
 
-async def get_admin_user(token_data: TokenPayload = Depends(get_token_payload), db: AsyncSession = Depends(get_db)) -> int:
-    user = await db.execute(select(User).where(User.id == int(token_data["sub"])))
-    user = user.scalars().first()
+async def get_admin_user(
+    token_data: TokenPayload = Depends(get_token_payload)
+) -> int:
 
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-        )
-
-    if not user.is_admin:
+    if not token_data["is_admin"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not an administrator",
         )
 
-    return int(user.id)
+    return int(token_data["sub"])

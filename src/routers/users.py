@@ -23,12 +23,8 @@ from src.models.user import User
 from src.database import get_db
 
 
-from src.schemas.schemas import (
-    UserCreate,
-    UserPublic,
-    Token,
-    UserUpdate,
-)
+from src.schemas.auth import Token
+from src.schemas.user import UserCreate, UserPublic, UserUpdate
 
 from fastapi.security import OAuth2PasswordRequestForm
 
