@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.models.post import Post, Comment
+from src.models import Post, Comment
 from src.schemas.comment import CommentCreate, CommentResponse
 from src.database import AsyncSession, get_db
 from src.auth import get_current_user
@@ -50,4 +50,6 @@ async def get_comment(
 
 
     return result_cursor
+
+
 

@@ -1,0 +1,27 @@
+
+services:
+  postgres:
+    image:
+    ports:
+     - '....'
+    environment:
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=docker
+      - POSTRES_DB=polls
+    volumes:
+      - polll.....
+
+regis:
+  image: ......
+  environment:
+    - .......
+  ports:
+   - '.....'
+  volumes:
+    - 'pol......'
+
+
+volumes:
+  polls_pg_data:
+  polls_regis_data:
+

@@ -24,7 +24,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
 class TokenPayload(TypedDict):
     sub: str
-    is_admin: bool
+    role: str
 
 
 def hash_password(password: str) -> str:
@@ -74,13 +74,13 @@ def verify_access_token(token: str) -> TokenPayload | None:
             token,
             settings.SECRET_KEY.get_secret_value(),
             algorithms=[settings.algorithm],
-            options={"require": ["exp", "sub", "is_admin"]},
+            options={"require": ["exp", "sub", "role"]},
         )
     except jwt.InvalidTokenError:
         return None
     else:
         return cast(
-            TokenPayload, {"sub": payload["sub"], "is_admin": payload["is_admin"]}
+            TokenPayload, {"sub": payload["sub"], "role": payload["role"]}
         )
 
 
@@ -106,7 +106,7 @@ async def get_admin_user(
     token_data: TokenPayload = Depends(get_token_payload)
 ) -> int:
 
-    if not token_data["is_admin"]:
+    if token_data["role"] != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not an administrator",
