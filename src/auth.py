@@ -79,9 +79,7 @@ def verify_access_token(token: str) -> TokenPayload | None:
     except jwt.InvalidTokenError:
         return None
     else:
-        return cast(
-            TokenPayload, {"sub": payload["sub"], "role": payload["role"]}
-        )
+        return cast(TokenPayload, {"sub": payload["sub"], "role": payload["role"]})
 
 
 async def get_token_payload(token: str = Depends(oauth2_scheme)) -> TokenPayload:
@@ -102,9 +100,7 @@ async def get_current_user(
     return int(token_data["sub"])
 
 
-async def get_admin_user(
-    token_data: TokenPayload = Depends(get_token_payload)
-) -> int:
+async def get_admin_user(token_data: TokenPayload = Depends(get_token_payload)) -> int:
 
     if token_data["role"] != "admin":
         raise HTTPException(

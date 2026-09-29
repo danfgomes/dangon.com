@@ -9,7 +9,6 @@ from src.routers import comments as comments_router
 from src.routers import posts as posts_router
 from src.routers import users
 
-import src.models
 
 app = FastAPI()
 
@@ -29,3 +28,9 @@ app.include_router(comments_router.router)
 @app.get("/home", status_code=HTTPStatus.OK)
 def home(request: Request):
     return templates.TemplateResponse(request=request, name="layout.html")
+
+@app.get("/posts", status_code=HTTPStatus.OK)
+def homepost(request: Request):
+    return templates.TemplateResponse(request=request, name="posthome.html", context={"request": request})
+
+
