@@ -1,0 +1,117 @@
+.error-page {
+  min-height: calc(100svh - 180px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.error-card {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  overflow: hidden;
+  border: 1px solid #d9c9ab;
+  border-radius: 28px;
+  padding: 48px;
+  background:
+    radial-gradient(circle at top right, rgba(194, 89, 63, 0.16), transparent 38%),
+    linear-gradient(180deg, #f9f3e8 0%, #f4eee0 100%);
+  box-shadow: 0 24px 60px rgba(26, 26, 26, 0.08);
+}
+
+.error-card::before {
+  content: "";
+  position: absolute;
+  inset: auto -60px -70px auto;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(194, 89, 63, 0.12);
+  filter: blur(4px);
+}
+
+.error-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  color: #c2593f;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.error-title {
+  max-width: 16ch;
+  margin-bottom: 18px;
+  font-size: clamp(2.2rem, 6vw, 4.4rem);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  color: #1a1a1a;
+}
+
+.error-message {
+  max-width: 56ch;
+  margin-bottom: 30px;
+  color: #555;
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.error-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.error-button:hover {
+  transform: translateY(-1px);
+}
+
+.error-button.primary {
+  background: #2b2b2b;
+  color: #f8f5ef;
+}
+
+.error-button.secondary {
+  border-color: #d9c9ab;
+  background: rgba(255, 255, 255, 0.45);
+  color: #2b2b2b;
+}
+
+@media (max-width: 640px) {
+  .error-page {
+    min-height: auto;
+    padding: 32px 0 48px;
+  }
+
+  .error-card {
+    padding: 28px 22px;
+    border-radius: 22px;
+  }
+
+  .error-message {
+    font-size: 0.98rem;
+  }
+
+  .error-button {
+    width: 100%;
+  }
+}

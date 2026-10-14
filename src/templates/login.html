@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/login.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="login-page">
+    <!-- Classe alterada de 'modal' para 'login-box' -->
+    <div class="login-box">
+        <a href="{{ url_for('home') }}" class="close-btn">&#10005;</a>
+
+        <h2>Entre para participar</h2>
+
+        <form action="/users/login" method="post">
+            <div class="input-group">
+                <input id="email" name="username" type="email" placeholder="Seu e-mail" required>
+            </div>
+
+            <div class="input-group">
+                <input id="password" name="password" type="password" placeholder="Sua senha" required>
+                <button class="show-password" type="button">Mostrar</button>
+            </div>
+
+            <a href="#" class="forgot-password">Esqueci minha senha</a>
+
+            <button type="submit" class="submit-btn">
+                Entrar e comentar &rarr;
+            </button>
+        </form>
+
+        <a href="{{url_for('create_account_page')}}" class="register-link">
+            Novo por aqui? <span>Criar uma conta</span>
+        </a>
+    </div>
+</section>
+{% endblock %}

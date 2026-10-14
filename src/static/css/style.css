@@ -1,0 +1,292 @@
+<<<<<<< HEAD:src/static/style.css
+/* RESET & BASE STYLES */
+=======
+html{
+  color-scheme: light dark;
+  scroll-behavior: smooth;
+}
+>>>>>>> af0ab5d (Adding a layout and integrating templates, along with fetching posts for the project's main pages):src/static/css/style.css
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background-color: #f4eee0;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* NAVBAR */
+.navbar-wrapper {
+  background-color: #ded1b8;
+  padding: 15px 0;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.brand-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #2b2b2b;
+  background-image: radial-gradient(circle at 30% 30%, #ff8a65, #2b2b2b);
+}
+
+.brand-icon.small {
+  width: 22px;
+  height: 22px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-item {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 3px;
+  color: #4a4a4a;
+  transition: background 0.2s;
+}
+
+.nav-item.active {
+  background-color: #cbb998;
+  color: #1a1a1a;
+}
+
+/* HERO SECTION */
+.hero-section {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 40px;
+  padding: 50px 0 30px;
+  align-items: start;
+}
+
+.tag-badge {
+  background-color: #f2ce72;
+  color: #1a1a1a;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  text-transform: uppercase;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.hero-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.hero-text {
+  font-size: 0.9rem;
+  color: #4a4a4a;
+  margin-bottom: 15px;
+  max-width: 500px;
+}
+
+.social-links-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin: 25px 0 20px;
+}
+
+.social-label {
+  color: #c2593f;
+}
+
+.social-link {
+  color: #2b2b2b;
+}
+
+.btn-primary {
+  display: inline-block;
+  background-color: #383838;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+}
+
+.hero-image-wrapper {
+  width: 100%;
+}
+
+.hero-image {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  display: block;
+}
+
+.divider {
+  border: 0;
+  height: 1px;
+  background-color: #e0d5be;
+  margin: 30px 0;
+}
+
+/* ARTICLES SECTION */
+.articles-section {
+  margin-bottom: 50px;
+}
+
+.articles-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.section-badge {
+  background-color: #f2ce72;
+  font-size: 1.1rem;
+  font-weight: 800;
+  padding: 2px 8px;
+}
+
+.articles-count {
+  font-size: 0.8rem;
+  color: #c2593f;
+}
+
+.articles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.article-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.article-category {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #c2593f;
+  margin-bottom: 2px;
+}
+
+.article-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.article-meta {
+  font-size: 0.75rem;
+  color: #c2593f;
+}
+
+/* PROJECTS SECTION */
+.projects-section {
+  margin-bottom: 60px;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.project-card {
+  background-color: #e3d8c4;
+  height: 180px;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.project-title {
+
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+/* FOOTER */
+.footer-wrapper {
+  background-color: #fcf8f2;
+  padding: 30px 0 20px;
+  border-top: 1px solid #e0d5be;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.footer-links {
+  display: flex;
+  gap: 10px;
+}
+
+.footer-link {
+  background-color: #f4eee0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  color: #4a4a4a;
+}
+
+.copyright {
+  text-align: center;
+  font-size: 0.7rem;
+  color: #888;
+  font-style: italic;
+}
+
+#projects {
+  scroll-margin-top: 80px;
+}

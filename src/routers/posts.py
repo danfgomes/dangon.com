@@ -1,6 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+    Query,
+    Request,
+)  # Import do Request adicionado
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func  # Import do func adicionado
 from sqlalchemy.orm import selectinload
 
 from src.models import User, Post
@@ -9,7 +17,6 @@ from src.database import get_db
 from src.schemas.post import PostCreate, PostResponse, PostUpdate
 from src.auth import (
     oauth2_scheme,
-    verify_access_token,
     get_current_user,
     get_admin_user,
 )
@@ -18,6 +25,8 @@ router = APIRouter(
     prefix="/posts",
     tags=["posts"],
 )
+
+templates = Jinja2Templates(directory="src/templates")
 
 
 @router.post(
@@ -32,7 +41,7 @@ async def create_post(
     new_post = Post(**post.model_dump(), author_id=current_user_id)
 
     db.add(new_post)
-    await db.flush()
+    await db.commit()
 
     query = (
         select(Post).options(selectinload(Post.author)).where(Post.id == new_post.id)
@@ -45,22 +54,75 @@ async def create_post(
     return created_post
 
 
+<<<<<<< HEAD
 @router.get("/", response_model=list[PostResponse])
 async def get_all_posts(
         limit: int = Query(default=10, ge=1, le=100),
         offset: int = Query(default=0, ge=0),
         db: AsyncSession = Depends(get_db)):
+=======
+@router.get("/recent")
+async def home(
+    request: Request,
+    limit: int = Query(default=5, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    db: AsyncSession = Depends(get_db),
+):
+>>>>>>> af0ab5d (Adding a layout and integrating templates, along with fetching posts for the project's main pages)
 
-    query = select(Post).options(selectinload(Post.author)).limit(limit).offset(offset)
+    total_result = await db.execute(select(func.count(Post.id)))
+    total_posts = total_result.scalar() or 0
 
-    result = await db.execute(query)
+    posts_query = (
+        select(Post)
+        .options(selectinload(Post.author))
+        .order_by(Post.id.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    result = await db.execute(posts_query)
     posts = result.scalars().all()
 
-    return posts
+    return templates.TemplateResponse(
+        request=request,
+        name="home.html",
+        context={
+            "posts": posts,
+            "total_posts": total_posts,
+        },
+    )
 
 
-@router.get("/{post_id}", response_model=PostResponse)
-async def get_post(post_id: int, db: AsyncSession = Depends(get_db)):
+@router.get("/", status_code=status.HTTP_200_OK)
+async def list_all_posts(
+    request: Request,
+    limit: int = Query(default=10, ge=1, le=50),
+    offset: int = Query(default=0, ge=0),
+    db: AsyncSession = Depends(get_db),
+):
+    posts_query = (
+        select(Post)
+        .options(selectinload(Post.author))
+        .order_by(Post.id.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    result = await db.execute(posts_query)
+    posts = result.scalars().all()
+
+    return templates.TemplateResponse(
+        request=request,
+        name="posthome.html",
+        context={
+            "posts": posts,
+        },
+    )
+
+
+@router.get("/{post_id}")
+async def post_detail(
+    post_id: int, request: Request, db: AsyncSession = Depends(get_db)
+):
 
     query = select(Post).options(selectinload(Post.author)).where(Post.id == post_id)
 
@@ -72,7 +134,13 @@ async def get_post(post_id: int, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND, detail="Post not found!"
         )
 
-    return post
+    return templates.TemplateResponse(
+        request=request,
+        name="post_detail.html",
+        context={
+            "post": post,
+        },
+    )
 
 
 @router.patch("/{post_id}", response_model=PostResponse)

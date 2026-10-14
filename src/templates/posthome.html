@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/homepost.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="posts-page">
+    <header class="posts-hero">
+        <div class="posts-hero__media">
+            <div class="media-frame">
+                <img src="{{ url_for('static', path='images/postgam.jpg') }}" alt="Imagem do autor" class="hero-photo">
+            </div>
+            <div class="media-caption">VALORIZE OS PEQUENOS MOMENTOS.</div>
+        </div>
+    </header>
+    {% for post in posts %}
+    <article class="post-card">
+        <div class="post-card__body">
+            <h2>
+                <a href="{{ url_for('post_detail', post_id=post.id) }}"Post Title:>
+                    {{ post.title }}
+                </a>
+            </h2>
+            <p>{{ (post.content or '')[:150] }}...</p>
+        </div>
+    </article>
+    {% else %}
+    <p style="color: red; text-align: center;">Nenhum post retornado do banco de dados.</p>
+    {% endfor %}
+    </section>
+
+<script>
+  const loginPortal = document.getElementById('loginPortal');
+  const openButtons = document.querySelectorAll('[data-login-open]');
+  const closeButtons = document.querySelectorAll('[data-login-close]');
+
+  const togglePortal = (isOpen) => {
+    if (!loginPortal) return;
+    loginPortal.classList.toggle('is-open', isOpen);
+    loginPortal.setAttribute('aria-hidden', String(!isOpen));
+  };
+
+  openButtons.forEach((button) => {
+    button.addEventListener('click', () => togglePortal(true));
+  });
+
+  closeButtons.forEach((button) => {
+    button.addEventListener('click', () => togglePortal(false));
+  });
+
+  loginPortal?.addEventListener('click', (event) => {
+    if (event.target === loginPortal) togglePortal(false);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') togglePortal(false);
+  });
+</script>
+{% endblock %}

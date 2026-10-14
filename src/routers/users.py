@@ -1,7 +1,7 @@
-from logging import raiseExceptions
-from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -11,9 +11,6 @@ from sqlalchemy import select
 from src.auth import (
     create_access_token,
     hash_password,
-    oauth2_scheme,
-    verify_password,
-    verify_access_token,
     get_current_user,
     authenticate_user,
 )
@@ -26,13 +23,56 @@ from src.database import get_db
 from src.schemas.auth import Token
 from src.schemas.user import UserCreate, UserPublic, UserUpdate
 
-from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter(
     prefix="/users",
     tags=["users"],
 )
 
+templates = Jinja2Templates(directory="src/templates")
+
+
+@router.get("/login")
+async def login_page(request: Request):
+    return templates.TemplateResponse(request=request, name="login.html")
+
+
+@router.post("/login")
+async def login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    db: AsyncSession = Depends(get_db),
+):
+    user = await authenticate_user(db, username, password)
+
+    if not user:
+
+        return templates.TemplateResponse(
+            "login.html",
+            {"request": request, "error": "Usuário ou senha incorretos."}
+        )
+
+    access_token = create_access_token(data={"sub": str(user.id), "role": user.role})
+
+    # Redireciona para a home após o login
+    response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
+    # Armazena o token em um cookie HttpOnly
+    response.set_cookie(
+        key="access_token",
+        value=f"Bearer {access_token}",
+        httponly=True,
+        max_age=1800,  # Tempo de expiração em segundos (ajuste conforme necessário)
+        samesite="lax"
+    )
+
+    return response
+
+
+@router.get("/create-account")
+async def create_account_page(request: Request):
+    return templates.TemplateResponse(request=request, name="createcont.html")
 
 @router.post("/create", response_model=UserPublic)
 async def create_user(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
@@ -128,22 +168,11 @@ async def get_user(
     return existing_user
 
 
-@router.post("/login", response_model=Token)
-async def login(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: AsyncSession = Depends(get_db),
-):
-    user = await authenticate_user(db, form_data.username, form_data.password)
 
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="The data is incorrect!",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
 
-    access_token = create_access_token(data={"sub": str(user.id), "role": user.role})
-    return {"access_token": access_token, "token_type": "bearer"}
+
+
+
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
@@ -162,3 +191,4 @@ async def delete_user(
 
     await db.delete(db_user)
     await db.commit()
+
