@@ -1,0 +1,141 @@
+.post-container {
+  max-width: 800px;
+  margin: 40px auto 80px;
+  padding: 0 20px;
+}
+
+.back-link {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #c2593f;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 40px;
+}
+
+.post-header {
+  margin-bottom: 30px;
+}
+
+.post-meta {
+  display: block;
+  font-size: 0.65rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+}
+
+.post-title {
+  font-size: 3.2rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  margin-bottom: 20px;
+}
+
+.post-subtitle {
+  font-size: 1.1rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.post-figure {
+  margin-bottom: 40px;
+}
+
+.post-image {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  display: block;
+}
+
+.post-body {
+  max-width: 650px;
+  margin: 0 auto 60px;
+}
+
+.post-body p {
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.8;
+  margin-bottom: 25px;
+}
+
+.post-divider {
+  border: 0;
+  border-top: 1px solid #e0d5be;
+  margin: 40px 0;
+}
+
+.comment-section {
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.comment-header h3 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+.community-label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #c2593f;
+  text-transform: uppercase;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #e0d5be;
+  padding: 10px 0 20px;
+  font-size: 0.9rem;
+  color: #1a1a1a;
+  margin-bottom: 20px;
+  outline: none;
+}
+
+.comment-input::placeholder {
+  color: #888;
+}
+
+.comment-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.comment-notice {
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.btn-submit {
+  background-color: #2b2b2b;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-transform: uppercase;
+}

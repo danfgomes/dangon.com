@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}">
+{% endblock %}
+
+{% block content %}
+<section id="home" class="hero-section">
+  <div class="hero-content">
+    <span class="tag-badge">MY LIFE</span>
+    <h1 class="hero-title">My life in five minutes</h1>
+    <p class="hero-text">
+      I am an Information technology professional focused on back-end development. I grew up in a city near Porto Alegre, where I would go on to study Information Technology Management.
+    </p>
+    <p class="hero-text">
+      I ended up creating this blog to share knowledge related to the field of technology.
+    </p>
+
+    <div class="social-links-area">
+      <span class="social-label">REDES SOCIAIS:</span>
+      <a href="https://www.linkedin.com/in/danielfergo/" class="social-link">@LINKEDIN</a>
+      <a href="https://github.com/danfgomes" class="social-link">@GITHUB</a>
+    </div>
+
+    <a href="#" class="btn-primary">READ MORE</a>
+  </div>
+
+  <div class="hero-image-wrapper">
+    <img src="{{ url_for('static', path='images/daniuser.png') }}" alt="Foto de perfil" class="hero-image">
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="post" class="articles-section">
+  <div class="articles-header">
+    <span class="section-badge">Latest articles!</span>
+    <span class="articles-count">{{ total_posts }} publicações</span>
+  </div>
+
+  <div class="articles-list">
+    {% for post in posts %}
+      <article class="article-item">
+        <span class="article-category">{{ post.category if post.category else 'Geral' }}</span>
+        <h2 class="article-title">
+          <a href="{{ url_for('post_detail', post_id=post.id) }}">
+            {{ post.title }}
+          </a>
+        </h2>
+        <span class="article-meta">{{ post.reading_time if post.reading_time else '5' }} min read</span>
+      </article>
+    {% else %}
+      <p>No posts available.</p>
+    {% endfor %}
+  </div>
+
+  <div class="view-all-container">
+    <a href="{{url_for('homepost')}}" class="view-all-link">view ALL</a>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="projects" class="projects-section">
+  <div class="projects-grid">
+    <div class="project-card">
+      <span class="project-title">INVESNOTE</span>
+    </div>
+    <div class="project-card-partial">
+      <span class="project-title"><a href="https://github.com/danfgomes/InvestNote">INVESNOTE</a></span>
+    </div>
+    <div class="project-card">
+      <span class="project-title"><a href="https://github.com/danfgomes/InvestNote">NINEBLOG</a></span>
+    </div>
+    <div class="project-card-partial">
+      <span class="project-title"><a href="https://github.com/danfgomes/DragPipe">DRAGPIPE</a></span>
+    </div>
+    <div class="project-card">
+      <span class="project-title"><a href="https://github.com/danfgomes/MyProject">MYPROJECT</a></span>
+    </div>
+    <div class="project-card-partial">
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,128 @@
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Ajustado para não estourar a tela com o header e footer do base.html */
+    padding: 60px 0;
+    min-height: calc(100vh - 200px);
+    background-color: transparent; /* O fundo deve seguir o tema do site ou ser ajustado se necessário */
+}
+
+/* Alterado de .modal para .login-box */
+.login-box {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 340px;
+    position: relative;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #cec2c2;
+}
+
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #888;
+    cursor: pointer;
+    padding: 5px;
+    text-decoration: none;
+}
+
+/* Alterado de .modal h2 para .login-box h2 */
+.login-box h2 {
+    margin-top: 0;
+    margin-bottom: 28px;
+    font-size: 22px;
+    font-weight: 500;
+}
+
+.input-group {
+    margin-bottom: 16px;
+    position: relative;
+}
+
+.input-group input[type="email"],
+.input-group input[type="password"] {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-sizing: border-box;
+    font-size: 14px;
+    color: #ebe1e1;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.input-group input[type="email"]:focus,
+.input-group input[type="password"]:focus {
+    border-color: #4a4036;
+}
+
+.input-group input::placeholder {
+    color: #a0a0a0;
+}
+
+.show-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 12px;
+    color: #666;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.forgot-password {
+    display: block;
+    text-align: right;
+    font-size: 11px;
+    color: #888;
+    text-decoration: none;
+    margin-top: -8px;
+    margin-bottom: 24px;
+}
+
+.submit-btn {
+    width: 100%;
+    background-color: #4c4238;
+    color: #ffffff;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.submit-btn:hover {
+    background-color: #3a322a;
+}
+
+.register-link {
+    display: block;
+    text-align: center;
+    margin-top: 24px;
+    font-size: 12px;
+    color: #888;
+    text-decoration: none;
+}
+
+.register-link span {
+    color: #4c4238;
+    font-weight: 600;
+}

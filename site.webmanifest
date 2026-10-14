@@ -1,0 +1,17 @@
+{
+  "name": "Dangon-dev",
+  "short_name": "Dangon",
+  "description": "Blog pessoal de Daniel Gomes",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4eee0",
+  "theme_color": "#ded1b8",
+  "icons": [
+    {
+      "src": "/static/images/default.jpg",
+      "sizes": "225x225",
+      "type": "image/png"
+    }
+  ]
+}
