@@ -6,25 +6,34 @@
 
 {% block content %}
 <article class="post-container">
-    <a href="{{ url_for('homepost') }}" class="back-link">← VOLTAR AO ARQUIVO</a>
+    <a href="{{ url_for('list_all_posts') }}" class="back-link">← VOLTAR AO ARQUIVO</a>
 
     <header class="post-header">
-        <!-- Tempo de leitura e Data de Criação dinâmicos -->
+
         <span class="post-meta">
             {{ post.reading_time if post.reading_time else 5 }} MIN DE LEITURA ·
             {{ post.created_at.strftime('%d DE %B, %Y') if post.created_at else 'DATA NÃO INFORMADA' }}
         </span>
 
-        <!-- Título do Post -->
-        <h1 class="post-title">{{ post.title }}</h1>
+        <div class="title-container">
+            <h1 class="post-title">{{ post.title }}</h1>
 
-        <!-- Subtítulo ou Descrição curta (caso exista no modelo) -->
+            <button id="delete-post-btn"
+                    class="delete-icon-btn"
+                    style="display: none;"
+                    data-post-id="{{ post.id }}"
+                    data-author-id="{{ post.author_id }}"
+                    title="Excluir Publicação">
+                &times;
+            </button>
+        </div>
+
         {% if post.subtitle %}
             <p class="post-subtitle">{{ post.subtitle }}</p>
         {% endif %}
+
     </header>
 
-    <!-- Imagem do Post (exibe imagem do post se existir, senão usa a padrão) -->
     <figure class="post-figure">
         {% if post.image_url %}
             <img src="{{ post.image_url }}" alt="{{ post.title }}" class="post-image">
@@ -54,4 +63,6 @@
         </form>
     </section>
 </article>
+
+<script type="module" src="{{ url_for('static', path='js/post_detail.js') }}"></script>
 {% endblock %}

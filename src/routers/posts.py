@@ -1,93 +1,41 @@
-from fastapi import (
-    APIRouter,
-    Depends,
-    HTTPException,
-    status,
-    Query,
-    Request,
-)  # Import do Request adicionado
-from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func  # Import do func adicionado
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+from typing import List
 
-from src.models import User, Post
+from src.models import Post
 from src.database import get_db
 
 from src.schemas.post import PostCreate, PostResponse, PostUpdate
-from src.auth import (
-    oauth2_scheme,
-    get_current_user,
-    get_admin_user,
-)
+from src.auth import get_admin_user
 
 router = APIRouter(
-    prefix="/posts",
+    prefix="/api/posts",
     tags=["posts"],
 )
 
-templates = Jinja2Templates(directory="src/templates")
-
-
 @router.post(
-    "/create", response_model=PostResponse, status_code=status.HTTP_201_CREATED
+    "/", response_model=PostResponse, status_code=status.HTTP_201_CREATED
 )
 async def create_post(
     post: PostCreate,
     db: AsyncSession = Depends(get_db),
     current_user_id: int = Depends(get_admin_user),
 ):
-
     new_post = Post(**post.model_dump(), author_id=current_user_id)
-
     db.add(new_post)
     await db.commit()
 
-    query = (
-        select(Post).options(selectinload(Post.author)).where(Post.id == new_post.id)
-    )
-
+    query = select(Post).options(selectinload(Post.author)).where(Post.id == new_post.id)
     result = await db.execute(query)
     created_post = result.scalars().first()
-    await db.commit()
 
     return created_post
 
 
-@router.get("/recent")
-async def home(
-    request: Request,
-    limit: int = Query(default=5, ge=1, le=100),
-    offset: int = Query(default=0, ge=0),
-    db: AsyncSession = Depends(get_db),
-):
-
-    total_result = await db.execute(select(func.count(Post.id)))
-    total_posts = total_result.scalar() or 0
-
-    posts_query = (
-        select(Post)
-        .options(selectinload(Post.author))
-        .order_by(Post.id.desc())
-        .limit(limit)
-        .offset(offset)
-    )
-    result = await db.execute(posts_query)
-    posts = result.scalars().all()
-
-    return templates.TemplateResponse(
-        request=request,
-        name="home.html",
-        context={
-            "posts": posts,
-            "total_posts": total_posts,
-        },
-    )
-
-
-@router.get("/", status_code=status.HTTP_200_OK)
-async def list_all_posts(
-    request: Request,
+@router.get("/", response_model=List[PostResponse], status_code=status.HTTP_200_OK)
+async def list_posts_api(
     limit: int = Query(default=10, ge=1, le=50),
     offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -102,22 +50,15 @@ async def list_all_posts(
     result = await db.execute(posts_query)
     posts = result.scalars().all()
 
-    return templates.TemplateResponse(
-        request=request,
-        name="posthome.html",
-        context={
-            "posts": posts,
-        },
-    )
+    return posts
 
 
-@router.get("/{post_id}")
-async def post_detail(
-    post_id: int, request: Request, db: AsyncSession = Depends(get_db)
+@router.get("/{post_id}", response_model=PostResponse)
+async def get_post_detail_api(
+    post_id: int,
+    db: AsyncSession = Depends(get_db)
 ):
-
     query = select(Post).options(selectinload(Post.author)).where(Post.id == post_id)
-
     result = await db.execute(query)
     post = result.scalars().first()
 
@@ -126,13 +67,7 @@ async def post_detail(
             status_code=status.HTTP_404_NOT_FOUND, detail="Post not found!"
         )
 
-    return templates.TemplateResponse(
-        request=request,
-        name="post_detail.html",
-        context={
-            "post": post,
-        },
-    )
+    return post
 
 
 @router.patch("/{post_id}", response_model=PostResponse)
@@ -140,7 +75,7 @@ async def update_post(
     post_id: int,
     post_update: PostUpdate,
     db: AsyncSession = Depends(get_db),
-    user_id: int = Depends(get_current_user),
+    admin_id: int = Depends(get_admin_user),
 ):
     query = select(Post).options(selectinload(Post.author)).where(Post.id == post_id)
     result = await db.execute(query)
@@ -151,14 +86,7 @@ async def update_post(
             status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
         )
 
-    if (db_post.author_id) != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to perform requested action",
-        )
-
     update_data = post_update.model_dump(exclude_unset=True)
-
     for key, value in update_data.items():
         setattr(db_post, key, value)
 
@@ -172,9 +100,8 @@ async def update_post(
 async def delete_post(
     post_id: int,
     db: AsyncSession = Depends(get_db),
-    user_id: int = Depends(get_current_user),
+    admin_id: int = Depends(get_admin_user),
 ):
-
     query = select(Post).where(Post.id == post_id)
     result = await db.execute(query)
     db_post = result.scalars().first()
@@ -182,12 +109,6 @@ async def delete_post(
     if not db_post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Post not found!"
-        )
-
-    if (db_post.author_id) != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You are not allowed to delete this post",
         )
 
     await db.delete(db_post)

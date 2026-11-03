@@ -1,30 +1,25 @@
 from datetime import UTC, datetime, timedelta
-from idlelib import query
 
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
-import pwdlib
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from src.models import User
-from src.database import get_db
-from typing import TypedDict, cast
-
 
 from src.config import settings
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, select
+from src.models import User
+from typing import cast
+from src.schemas.auth import TokenPayload
+
 
 password_hasher = PasswordHash.recommended()
 
 DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$Ke04ppvRwTWi1kkItmHb9g$r7yis/cN3wg/UpebnSI3kY98UQuEu+7EMvCTyRzygX4"
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
 
 
-class TokenPayload(TypedDict):
-    sub: str
-    role: str
 
 
 def hash_password(password: str) -> str:
@@ -33,20 +28,6 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return password_hasher.verify(plain_password, hashed_password)
-
-
-async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
-
-    user = (await db.execute(select(User).where(User.email == email))).scalars().first()
-
-    if not user:
-        verify_password(password, DUMMY_HASH)
-        return None
-
-    if not verify_password(password, user.password):
-        return None
-
-    return user
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
@@ -80,6 +61,20 @@ def verify_access_token(token: str) -> TokenPayload | None:
         return None
     else:
         return cast(TokenPayload, {"sub": payload["sub"], "role": payload["role"]})
+
+
+async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
+
+    user = (await db.execute(select(User).where(func.lower(User.email) == email.lower()))).scalars().first()
+
+    if not user:
+        verify_password(password, DUMMY_HASH)
+        return None
+
+    if not verify_password(password, user.password):
+        return None
+
+    return user
 
 
 async def get_token_payload(token: str = Depends(oauth2_scheme)) -> TokenPayload:
