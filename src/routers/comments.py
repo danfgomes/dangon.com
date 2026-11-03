@@ -7,7 +7,6 @@ from src.schemas.comment import CommentCreate, CommentResponse
 from src.database import AsyncSession, get_db
 from src.auth import get_current_user
 
-
 router = APIRouter(
     prefix="/posts",
     tags=["comments"],
