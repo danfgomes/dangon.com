@@ -17,7 +17,7 @@ password_hasher = PasswordHash.recommended()
 
 DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$Ke04ppvRwTWi1kkItmHb9g$r7yis/cN3wg/UpebnSI3kY98UQuEu+7EMvCTyRzygX4"
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/token")
 
 
 

@@ -8,6 +8,7 @@ from .user import UserPublic
 class PostBase(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     content: str = Field(min_length=1, max_length=2000)
+    category: str = Field(min_length=1, max_length=50)
 
 
 class PostCreate(PostBase):
