@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.models.post import Post
+
 from src.routers import comments as comments_router
 from src.routers import posts as posts_router
 from src.routers import users

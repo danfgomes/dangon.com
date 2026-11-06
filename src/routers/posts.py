@@ -21,9 +21,9 @@ router = APIRouter(
 async def create_post(
     post: PostCreate,
     db: AsyncSession = Depends(get_db),
-    current_user_id: int = Depends(get_admin_user),
+    current_user = Depends(get_admin_user),
 ):
-    new_post = Post(**post.model_dump(), author_id=current_user_id)
+    new_post = Post(**post.model_dump(), author_id=current_user.id)
     db.add(new_post)
     await db.commit()
 
@@ -32,7 +32,6 @@ async def create_post(
     created_post = result.scalars().first()
 
     return created_post
-
 
 @router.get("/", response_model=List[PostResponse], status_code=status.HTTP_200_OK)
 async def list_posts_api(

@@ -97,3 +97,25 @@ async def create_account_page(request: Request):
             "request": request,
         },
     )
+
+
+@router.get("/account", name="account_management_page")
+async def account_management_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="account_management.html",
+        context={
+            "request": request,
+        },
+    )
+
+
+@router.get("/account/password", name="account_password_page")
+async def account_password_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="account_password.html",
+        context={
+            "request": request,
+        },
+    )

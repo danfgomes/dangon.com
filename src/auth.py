@@ -11,6 +11,7 @@ from sqlalchemy import func, select
 from src.models import User
 from typing import cast
 from src.schemas.auth import TokenPayload
+from src.database import get_db
 
 
 password_hasher = PasswordHash.recommended()
@@ -18,8 +19,6 @@ password_hasher = PasswordHash.recommended()
 DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$Ke04ppvRwTWi1kkItmHb9g$r7yis/cN3wg/UpebnSI3kY98UQuEu+7EMvCTyRzygX4"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/token")
-
-
 
 
 def hash_password(password: str) -> str:
@@ -31,7 +30,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
-
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(UTC) + expires_delta
@@ -49,7 +47,6 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 
 def verify_access_token(token: str) -> TokenPayload | None:
-
     try:
         payload = jwt.decode(
             token,
@@ -64,7 +61,6 @@ def verify_access_token(token: str) -> TokenPayload | None:
 
 
 async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
-
     user = (await db.execute(select(User).where(func.lower(User.email) == email.lower()))).scalars().first()
 
     if not user:
@@ -90,17 +86,24 @@ async def get_token_payload(token: str = Depends(oauth2_scheme)) -> TokenPayload
 
 async def get_current_user(
     token_data: TokenPayload = Depends(get_token_payload),
-) -> int:
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    user = await db.get(User, int(token_data["sub"]))
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
 
-    return int(token_data["sub"])
 
-
-async def get_admin_user(token_data: TokenPayload = Depends(get_token_payload)) -> int:
-
-    if token_data["role"] != "admin":
+async def get_admin_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if getattr(current_user, "role", "user") != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not an administrator",
         )
-
-    return int(token_data["sub"])
+    return current_user
