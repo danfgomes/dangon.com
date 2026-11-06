@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Minha Conta | Lumi{% endblock %}
+
+{% block styles %}
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', path='css/account_management.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="account-shell" data-node-id="1:2">
+        <span class="bg-blob bg-blob-left" aria-hidden="true"></span>
+        <span class="bg-blob bg-blob-right" aria-hidden="true"></span>
+
+        <div class="account-container">
+            <div class="account-main-layout">
+                <section class="account-settings-nav" aria-label="Configurações">
+
+
+                    <div class="settings-tabs">
+                        <a href="{{ url_for('account_management_page') }}" class="tab-btn active" aria-current="page">
+
+                            Perfil
+                        </a>
+
+                        <a href="{{ url_for('account_password_page') }}" class="tab-btn">
+                            Segurança
+                        </a>
+                    </div>
+                </section>
+
+                <section class="account-content" aria-label="Gerenciamento de conta">
+                    <p class="section-kicker">Minha conta</p>
+                    <h1>Gerencie seu perfil</h1>
+                    <p class="section-description">Mantenha suas informações pessoais e preferências de segurança sempre atualizadas.</p>
+
+                    <section class="card-section">
+                        <header class="card-header">
+                            <h2>Informações pessoais</h2>
+                            <p>Escolha como você aparece na plataforma.</p>
+                        </header>
+
+                        <div class="photo-line" id="photo-line-container">
+                            <div class="photo-wrap" aria-hidden="true">
+                                <!-- A imagem ou as iniciais serão injetadas pelo JavaScript aqui -->
+                                <div id="avatar-container">
+                                    <span class="photo-avatar">...</span>
+                                </div>
+
+                                <span class="camera-badge">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M8 9L9.5 7.5H14.5L16 9H18C19.1 9 20 9.9 20 11V17C20 18.1 19.1 19 18 19H6C4.9 19 4 18.1 4 17V11C4 9.9 4.9 9 6 9H8Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+                                        <circle cx="12" cy="14" r="3" stroke="white" stroke-width="1.8"/>
+                                    </svg>
+                                </span>
+                            </div>
+
+                            <div class="photo-copy">
+                                <input type="file" id="avatar-upload" style="display: none;" accept="image/jpeg, image/png, image/webp">
+                                <button type="button" class="soft-btn" id="btn-alterar-foto">Alterar foto</button>
+                                <button type="button" class="soft-btn" id="btn-remover-foto" style="display: none; color: #dc3545; border-color: #dc3545;">Remover</button>
+                                <small>JPG, PNG ou WebP. Tamanho máximo de 5 MB.</small>
+                            </div>
+                        </div>
+                        <form id="updateProfileForm" class="profile-form">
+                            <label class="field">
+                                <span>Nome completo</span>
+                                <input type="text" id="full_name" name="full_name" required>
+                            </label>
+
+                            <label class="field">
+                                <span>E-mail</span>
+                                <input type="email" id="email" name="email" required>
+                            </label>
+
+                            <div class="actions-end">
+                                <button type="submit" class="dark-btn">Salvar alterações</button>
+                            </div>
+                        </form>
+                    </section>
+                </section>
+            </div>
+        </div>
+    </div>
+{% endblock %}

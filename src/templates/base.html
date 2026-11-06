@@ -39,6 +39,7 @@
 
       <!-- Ocultos por padrão -->
       <button id="open-modal-btn" class="nav-item nav-btn" data-bs-toggle="modal" data-bs-target="#createPostModal" style="display: none;">Criar Publicação</button>
+      <a id="account-btn" href="{{ url_for('account_management_page') }}" class="nav-item nav-btn" style="display: none;">MINHA CONTA</a>
       <button id="logout-btn" class="nav-item nav-btn" style="display: none;">LOGOUT</button>
 
       <!-- Visível por padrão -->
@@ -85,7 +86,7 @@
             <button class="show-password" type="button">Mostrar</button>
           </div>
 
-          <a href="#" class="forgot-password">Esqueci minha senha</a>
+          <a href="{{url_for('account_password_page') }}" class="forgot-password">Esqueci minha senha</a>
 
           <button type="submit" class="submit-btn">
             Entrar e comentar &rarr;

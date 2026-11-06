@@ -1,34 +1,25 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Criar Conta | Lumi</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', path='css/createcont.css') }}">
-</head>
-<body>
-    <div class="page-shell">
-        <span class="bg-blob bg-blob-left" aria-hidden="true"></span>
-        <span class="bg-blob bg-blob-right" aria-hidden="true"></span>
+
+{% extends "base.html" %}
+
+{% block title %}Minha Conta | Lumi{% endblock %}
+
+{% block styles %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', path='css/createcont.css') }}">
+{% endblock %}
+
+{% block content %}
 
         <div class="page-container">
-            <header class="top-header" data-node-id="1:9">
-                <a class="logo-wrap" href="{{ url_for('home') }}" aria-label="Ir para a home">
-                    <span class="logo-text">Home</span>
-                </a>
-                <p class="header-copy">Um espaço para começar.</p>
-            </header>
 
-            <main class="register-grid" data-node-id="1:20">
+            <main class="register-grid" data-node-id="1:0">
                 <section class="register-copy" aria-label="Introdução">
-                    <p class="eyebrow">SEU NOVO COMEÇO</p>
-                    <h1>Nem sempre é um<br>Hello World</h1>
+                    <p class="eyebrow">Your new beginning</p>
+                    <h1>It's not always a <br>Hello World</h1>
                     <p class="copy-description">
-                        Uma experiência simples, acolhedora e feita para
-                        acompanhar cada passo da sua jornada.
+                        We acquire virtues by first exercising them, just as is the case with other arts.
                     </p>
 
                     <div class="community-block" aria-hidden="true">
@@ -44,7 +35,6 @@
                 <section class="register-card" aria-label="Formulário de criação de conta">
                     <header class="card-header">
                         <h2>Criar sua conta</h2>
-                        <p>Preencha seus dados para começar.</p>
                     </header>
 
 
@@ -70,9 +60,6 @@
                         </label>
 
                         <label class="terms-row">
-                            <span class="fake-checkbox" aria-hidden="true">
-                                <img src="{{ url_for('static', path='images/createcont/check.svg') }}" alt="">
-                            </span>
                             <input type="checkbox" name="terms" checked required>
                             <span>
                                 Li e aceito os
@@ -84,7 +71,6 @@
 
                         <button type="submit" class="create-button">
                             <span>Criar conta</span>
-                            <img src="{{ url_for('static', path='images/createcont/arrow-right.svg') }}" alt="">
                         </button>
                     </form>
 
@@ -95,13 +81,9 @@
 
                     <a href="#" class="forgot-link">Esqueci minha senha</a>
                 </section>
-            </main>
 
-            <footer class="bottom-footer">
-                <p>&copy; 2025 Lumi · Privacidade · Termos</p>
-            </footer>
         </div>
-    </div>
+
         <script type="module" src="{{ url_for('static', path='js/utils.js') }}"></script>
-</body>
-</html>
+
+{% endblock %}
