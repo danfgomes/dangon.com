@@ -10,5 +10,7 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_ex: int = 30
 
+    max_upload_size_bytes: int = 5 * 1024 * 1024
+
 
 settings = Settings()
