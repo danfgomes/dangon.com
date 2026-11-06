@@ -1,6 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+    Query,
+    Request,
+)  # Import do Request adicionado
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func  # Import do func adicionado
 from sqlalchemy.orm import selectinload
 from typing import List
 
@@ -39,6 +47,16 @@ async def list_posts_api(
     offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
 ):
+@router.get("/", response_model=list[PostResponse])
+async def get_all_posts(
+        limit: int = Query(default=10, ge=1, le=100),
+        offset: int = Query(default=0, ge=0),
+        db: AsyncSession = Depends(get_db)):
+
+    total_result = await db.execute(select(func.count(Post.id)))
+    total_posts = total_result.scalar() or 0
+
+
     posts_query = (
         select(Post)
         .options(selectinload(Post.author))
@@ -49,7 +67,14 @@ async def list_posts_api(
     result = await db.execute(posts_query)
     posts = result.scalars().all()
 
-    return posts
+    return templates.TemplateResponse(
+        request=request,
+        name="home.html",
+        context={
+            "posts": posts,
+            "total_posts": total_posts,
+        },
+    )
 
 
 @router.get("/{post_id}", response_model=PostResponse)
@@ -66,7 +91,13 @@ async def get_post_detail_api(
             status_code=status.HTTP_404_NOT_FOUND, detail="Post not found!"
         )
 
-    return post
+    return templates.TemplateResponse(
+        request=request,
+        name="post_detail.html",
+        context={
+            "post": post,
+        },
+    )
 
 
 @router.patch("/{post_id}", response_model=PostResponse)

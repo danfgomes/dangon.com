@@ -1,7 +1,9 @@
+/* RESET & BASE STYLES */
 html{
   color-scheme: light dark;
   scroll-behavior: smooth;
 }
+
 * {
   margin: 0;
   padding: 0;

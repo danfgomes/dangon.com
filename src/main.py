@@ -17,6 +17,9 @@ from src.routers import pages as pages_router  # Importação do novo roteador H
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+import src.models
+
+
 app = FastAPI()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -90,8 +93,13 @@ async def generic_exception_handler(request: Request, exc: Exception):
             content={"detail": "Internal Server Error"}
         )
 
+@app.get("/", status_code=HTTPStatus.OK, include_in_schema=False)
+@app.get("/home", status_code=HTTPStatus.OK)
+def home(request: Request):
+    return templates.TemplateResponse(request=request, name="layout.html")
     return render_error_page(
         request,
         500,
         "Aconteceu um erro inesperado. Tente novamente em instantes.",
     )
+
