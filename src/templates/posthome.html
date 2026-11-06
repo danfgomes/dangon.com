@@ -18,11 +18,11 @@
     <article class="post-card">
         <div class="post-card__body">
             <h2>
-                <a href="{{ url_for('post_detail', post_id=post.id) }}"Post Title:>
+                <a href="{{ url_for('post_detail', post_id=post.id) }}">
                     {{ post.title }}
                 </a>
             </h2>
-            <p>{{ (post.content or '')[:150] }}...</p>
+
         </div>
     </article>
     {% else %}

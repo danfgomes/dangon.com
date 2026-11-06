@@ -18,4 +18,3 @@ class CommentResponse(CommentCreate):
     author: UserPublic | None
     post_id: int
     date_posted: datetime
-

@@ -26,29 +26,27 @@
 
 <body>
   <header class="navbar-wrapper">
-    <div class="navbar container">
-      <div class="brand">
-        <span class="brand-name">DANFERGO</span>
-        <span>.</span>
-      </div>
-
-      <nav class="nav-links">
-  <a href="{{ url_for('home') }}" class="nav-item active">HOME</a>
-  <a href="{{ url_for('home') }}#projetos" class="nav-item">PROJECTS</a>
-  <a href="{{ url_for('list_all_posts') }}" class="nav-item">POST</a>
-
-  {% if current_user %}
-    {% if current_user.is_admin %}
-      <a href="/posts/create" class="nav-item">CRIAR POST</a>
-      <a href="/admin/manage" class="nav-item">GERENCIAR</a>
-    {% endif %}
-    <a href="/logout" class="nav-item login-button">LOGOUT</a>
-  {% else %}
-    <a href="{{ url_for('login_page') }}" class="nav-item login-button">LOGIN</a>
-  {% endif %}
-</nav>
+  <div class="container navbar">
+    <div class="logo-container">
+      <img src="{{ url_for('static', path='images/sua-foto.jpg') }}" alt="Perfil" class="header-profile-img">
+      <span> Danfergo.</span>
     </div>
-  </header>
+
+    <nav class="nav-links" id="nav-links-container">
+      <a href="{{ url_for('home') }}" class="nav-item active">HOME</a>
+      <a href="{{ url_for('home') }}#projects" class="nav-item">PROJECTS</a>
+      <a href="{{ url_for('list_all_posts') }}" class="nav-item">POST</a>
+
+      <!-- Ocultos por padrão -->
+      <button id="open-modal-btn" class="nav-item nav-btn" data-bs-toggle="modal" data-bs-target="#createPostModal" style="display: none;">Criar Publicação</button>
+      <a id="account-btn" href="{{ url_for('account_management_page') }}" class="nav-item nav-btn" style="display: none;">MINHA CONTA</a>
+      <button id="logout-btn" class="nav-item nav-btn" style="display: none;">LOGOUT</button>
+
+      <!-- Visível por padrão -->
+      <button id="login-btn" type="button" class="nav-item nav-btn" data-bs-toggle="modal" data-bs-target="#loginModal">LOGIN</button>
+    </nav>
+  </div>
+</header>
 
   <main class="container">
     {% block content %}
@@ -70,6 +68,138 @@
     </div>
   </footer>
 
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 bg-transparent shadow-none">
+      <div class="login-box mx-auto">
+        <button type="button" class="close-btn" data-bs-dismiss="modal" aria-label="Close">&#10005;</button>
+
+        <h2>Entre para participar</h2>
+
+        <form id="loginForm">
+          <div class="input-group">
+            <input id="email" name="username" type="email" placeholder="Seu e-mail" required>
+          </div>
+
+          <div class="input-group">
+            <input id="password" name="password" type="password" placeholder="Sua senha" required>
+            <button class="show-password" type="button">Mostrar</button>
+          </div>
+
+          <a href="{{url_for('account_password_page') }}" class="forgot-password">Esqueci minha senha</a>
+
+          <button type="submit" class="submit-btn">
+            Entrar e comentar &rarr;
+          </button>
+        </form>
+
+        <a href="{{ url_for('create_account_page') }}" class="register-link">
+          Novo por aqui? <span>Criar uma conta</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fundo do Modal (Overlay) -->
+<div class="modal fade" id="createPostModal" tabindex="-1" aria-labelledby="createPostModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+
+      <form id="createPostForm">
+  <div class="modal-header border-0 pb-0">
+    <div>
+      <span class="modal-label">NOVA PUBLICAÇÃO</span>
+      <h2 class="modal-title" id="createPostModalLabel">Compartilhe uma ideia</h2>
+      <p class="modal-subtitle">Transforme seus pensamentos em algo que vale a pena guardar.</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+
+  <div class="modal-body">
+    <input type="text" name="title" class="title-input" placeholder="Dê um título à sua ideia..." required>
+
+    <div class="editor-toolbar mb-2">
+      <button type="button" class="tool-btn"><b>B</b></button>
+      <button type="button" class="tool-btn"><i>I</i></button>
+      <button type="button" class="tool-btn"><u>U</u></button>
+      <button type="button" class="tool-btn">🔗</button>
+      <span class="divider">|</span>
+    </div>
+
+    <textarea name="content" class="content-textarea" rows="6" placeholder="Comece a escrever. Não precisa estar perfeito..." required></textarea>
+    <div class="char-count text-end text-muted small mb-3">0 / 4.000</div>
+
+    <div class="upload-box mb-3 border p-3 rounded">
+      <div class="upload-info">
+        <strong>Adicione uma imagem</strong><br>
+        <span class="text-muted small">PNG ou JPG, até 10 MB</span>
+      </div>
+      <button type="button" class="upload-btn btn btn-outline-secondary mt-2">Escolher arquivo</button>
+    </div>
+
+    <div class="topics-box">
+      <span class="topics-label">🏷️ Categoria</span>
+      <div class="topics-container mt-2">
+        <select name="category" class="form-select form-select-sm w-50" required>
+          <option value="" disabled selected>Selecione uma categoria</option>
+          <option value="back-end">back-end</option>
+          <option value="front-end">front-end</option>
+          <option value="Devops">Devops</option>
+          <option value="IA e Machine Learning">IA e Machine Learning</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer border-0">
+    <button type="submit" class="publish-btn btn btn-primary w-25">Publicar &rarr;</button>
+  </div>
+</form>
+
+    </div>
+  </div>
+</div>
+<!-- Modal de Sucesso -->
+<!-- Modal de Sucesso -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-bege">
+      <div class="modal-header modal-bege-header border-0">
+        <h5 class="modal-title" id="successModalLabel">Sucesso</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="successMessage" class="fs-5 mb-0">Operação realizada com sucesso!</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Erro -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-bege">
+      <div class="modal-header modal-bege-header border-0">
+        <h5 class="modal-title" id="errorModalLabel">Erro</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="errorMessage" class="fs-5 mb-0">Ocorreu um erro na operação.</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+  <script type="module" src="/static/js/utils.js"></script>
+
+
 </body>
 </html>

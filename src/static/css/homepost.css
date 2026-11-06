@@ -178,7 +178,6 @@
 
 .media-frame {
   width: min(100%, 470px);
-  border: 10px solid #e8d8b8;
   background: #e8d8b8;
   box-shadow: 0 26px 42px rgba(40, 26, 17, 0.12);
 }
@@ -257,7 +256,7 @@
 }
 
 .post-card h2 {
-  font-size: clamp(1.8rem, 2vw, 2.7rem);
+  font-size: revert-layer;
   line-height: 1.05;
   letter-spacing: -0.05em;
   margin-bottom: 14px;

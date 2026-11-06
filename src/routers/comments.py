@@ -7,7 +7,6 @@ from src.schemas.comment import CommentCreate, CommentResponse
 from src.database import AsyncSession, get_db
 from src.auth import get_current_user
 
-
 router = APIRouter(
     prefix="/posts",
     tags=["comments"],
@@ -39,17 +38,12 @@ async def create_comment(
     await db.refresh(new_comment)
     return new_comment
 
+
 @router.get("/{post_id}/comments/{comment_id}", response_model=CommentResponse)
 async def get_comment(
-    post_id: int,
-    comment_id: int,
-    db: AsyncSession = Depends(get_db)
+    post_id: int, comment_id: int, db: AsyncSession = Depends(get_db)
 ):
-    query = (select(Post).options(selectinload(Post.id)))
+    query = select(Post).options(selectinload(Post.id))
     result_cursor = (await db.execute(query)).scalar_one_or_none()
 
-
     return result_cursor
-
-
-
