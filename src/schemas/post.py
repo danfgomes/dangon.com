@@ -29,3 +29,11 @@ class PostResponse(BaseModel):
     date_posted: datetime
     author_id: int
     author: UserPublic | None
+
+
+class PaginatedPostsResponse(BaseModel):
+    posts: list[PostResponse]
+    total: int
+    skip: int
+    limit: int
+    has_more: bool

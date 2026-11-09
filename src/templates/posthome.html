@@ -14,22 +14,27 @@
             <div class="media-caption">VALORIZE OS PEQUENOS MOMENTOS.</div>
         </div>
     </header>
-    {% for post in posts %}
-    <article class="post-card">
-        <div class="post-card__body">
-            <span class="article-category">{{ post.category if post.category else 'Geral' }}</span>
-            <h2>
-                <a href="{{ url_for('post_detail', post_id=post.id) }}">
-                    {{ post.title }}
-                </a>
-            </h2>
-         <span class="article-meta">{{ post.reading_time if post.reading_time else '5' }} min read</span>
-        </div>
-    </article>
-    {% else %}
-    <p style="color: red; text-align: center;">Nenhum post retornado do banco de dados.</p>
-    {% endfor %}
-    </section>
+
+    <!-- Container ID adicionado para o JavaScript encontrar onde inserir os novos posts -->
+    <div id="postsContainer">
+        {% for post in posts %}
+        <article class="post-card">
+            <div class="post-card__body">
+                <span class="article-category">{{ post.category if post.category else 'Geral' }}</span>
+                <h2>
+                    <a href="{{ url_for('post_detail', post_id=post.id) }}">
+                        {{ post.title }}
+                    </a>
+                </h2>
+             <span class="article-meta">{{ post.reading_time if post.reading_time else '5' }} min read</span>
+            </div>
+        </article>
+        {% else %}
+        <p style="color: red; text-align: center;">Nenhum post retornado do banco de dados.</p>
+        {% endfor %}
+    </div>
+
+</section>
 
 <script>
   const loginPortal = document.getElementById('loginPortal');
@@ -57,5 +62,87 @@
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') togglePortal(false);
   });
+</script>
+
+{% if has_more %}
+    <div class="text-end mb-4" style="text-align: center; margin-top: 20px;">
+       <button type="button" id="loadMoreBtn" style="background: none; border: none; color: black; padding: 0; cursor: pointer;">Carregar mais posts</button>
+    </div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+  import { escapeHtml } from '/static/js/utils.js';
+
+  let currentOffset = {{ limit }};
+  const limit = {{ limit }};
+  let hasMore = {{ 'true' if has_more else 'false' }};
+
+  const postsContainer = document.getElementById('postsContainer');
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+
+  const basePostUrlTemplate = "{{ url_for('post_detail', post_id='PLACEHOLDER_ID') }}";
+
+  function createPostHTML(post) {
+    const category = post.category ? escapeHtml(post.category) : 'Geral';
+    const readingTime = post.reading_time ? escapeHtml(String(post.reading_time)) : '5';
+    const postUrl = basePostUrlTemplate.replace('PLACEHOLDER_ID', post.id);
+
+    return `
+      <article class="post-card">
+          <div class="post-card__body">
+              <span class="article-category">${category}</span>
+              <h2>
+                  <a href="${postUrl}">
+                      ${escapeHtml(post.title)}
+                  </a>
+              </h2>
+              <span class="article-meta">${readingTime} min read</span>
+          </div>
+      </article>
+    `;
+  }
+
+  async function loadMorePosts() {
+    loadMoreBtn.disabled = true;
+    loadMoreBtn.textContent = 'Carregando...';
+
+    try {
+      const response = await fetch(`/api/posts/?skip=${currentOffset}&limit=${limit}`);
+
+      if (!response.ok) {
+        throw new Error('Falha ao buscar posts');
+      }
+
+      const data = await response.json();
+
+      for (const post of data.posts) {
+        postsContainer.insertAdjacentHTML('beforeend', createPostHTML(post));
+      }
+
+      currentOffset += data.posts.length;
+      hasMore = data.has_more;
+
+      if (!hasMore) {
+        loadMoreBtn.style.display = 'none';
+      }
+    } catch (error) {
+      console.error('Erro ao carregar posts:', error);
+      loadMoreBtn.textContent = 'Erro - Tente novamente';
+      loadMoreBtn.disabled = false;
+      return;
+    }
+
+    if (hasMore) {
+      loadMoreBtn.disabled = false;
+      loadMoreBtn.textContent = 'Carregar mais posts';
+    }
+  }
+
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', loadMorePosts);
+  }
 </script>
 {% endblock %}

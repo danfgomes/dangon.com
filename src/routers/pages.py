@@ -1,28 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.models import Post
 from src.database import get_db
+from src.models import Post
 
-router = APIRouter(
-    tags=["pages"],
-    include_in_schema=False
-)
+router = APIRouter(tags=["pages"], include_in_schema=False)
 
 templates = Jinja2Templates(directory="src/templates")
-
 
 
 @router.get("/", name="home")
 async def home_page(request: Request, db: AsyncSession = Depends(get_db)):
     query = (
         select(Post)
-        .options(
-            selectinload(Post.author)
-        )
+        .options(selectinload(Post.author))
         .order_by(Post.id.desc())
         .limit(4)
     )
@@ -32,12 +26,9 @@ async def home_page(request: Request, db: AsyncSession = Depends(get_db)):
     return templates.TemplateResponse(
         request=request,
         name="home.html",
-        context={
-            "request": request,
-            "posts": posts,
-            "total_posts": len(posts)
-        }
+        context={"request": request, "posts": posts, "total_posts": len(posts)},
     )
+
 
 @router.get("/posts", status_code=status.HTTP_200_OK)
 async def list_all_posts(
@@ -64,11 +55,10 @@ async def list_all_posts(
         },
     )
 
+
 @router.get("/posts/{post_id}")
 async def post_detail(
-    post_id: int,
-    request: Request,
-    db: AsyncSession = Depends(get_db)
+    post_id: int, request: Request, db: AsyncSession = Depends(get_db)
 ):
     query = select(Post).options(selectinload(Post.author)).where(Post.id == post_id)
     result = await db.execute(query)
@@ -97,6 +87,26 @@ async def create_account_page(request: Request):
             "request": request,
         },
     )
+
+
+@router.get("/forgot-password", include_in_schema=False)
+async def forgot_password_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "forgot_password.html",
+        {"title": "Forgot Password"},
+    )
+
+
+@router.get("/reset-password", include_in_schema=False)
+async def reset_password_page(request: Request):
+    response = templates.TemplateResponse(
+        request,
+        "reset_password.html",
+        {"title": "Reset Password"},
+    )
+    response.headers["Referrer-policy"] = "no-referrer"
+    return response
 
 
 @router.get("/account", name="account_management_page")
