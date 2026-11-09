@@ -17,12 +17,13 @@
     {% for post in posts %}
     <article class="post-card">
         <div class="post-card__body">
+            <span class="article-category">{{ post.category if post.category else 'Geral' }}</span>
             <h2>
                 <a href="{{ url_for('post_detail', post_id=post.id) }}">
                     {{ post.title }}
                 </a>
             </h2>
-
+         <span class="article-meta">{{ post.reading_time if post.reading_time else '5' }} min read</span>
         </div>
     </article>
     {% else %}
