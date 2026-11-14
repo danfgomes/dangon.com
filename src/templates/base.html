@@ -27,27 +27,27 @@
 
 <body>
   <header class="navbar-wrapper">
-  <div class="container navbar">
-    <div class="logo-container">
-      <img src="{{ url_for('static', path='images/sua-foto.jpg') }}" alt="Perfil" class="header-profile-img">
-      <span> Danfergo.</span>
+    <div class="container navbar">
+      <div class="logo-container">
+        <img src="{{ url_for('static', path='images/sua-foto.jpg') }}" alt="Perfil" class="header-profile-img">
+        <span> Danfergo.</span>
+      </div>
+
+      <nav class="nav-links" id="nav-links-container">
+        <a href="{{ url_for('home') }}" class="nav-item active">HOME</a>
+        <a href="{{ url_for('home') }}#projects" class="nav-item">PROJECTS</a>
+        <a href="{{ url_for('list_all_posts') }}" class="nav-item">POST</a>
+
+        <!-- Ocultos por padrão -->
+        <button id="open-modal-btn" class="nav-item nav-btn" data-bs-toggle="modal" data-bs-target="#createPostModal" style="display: none;">CREATE POST</button>
+        <a id="account-btn" href="{{ url_for('account_management_page') }}" class="nav-item nav-btn" style="display: none;">MINHA CONTA</a>
+        <button id="logout-btn" class="nav-item nav-btn" style="display: none;">LOGOUT</button>
+
+        <!-- Visível por padrão -->
+        <button id="login-btn" type="button" class="nav-item nav-btn" data-bs-toggle="modal" data-bs-target="#loginModal">LOGIN</button>
+      </nav>
     </div>
-
-    <nav class="nav-links" id="nav-links-container">
-      <a href="{{ url_for('home') }}" class="nav-item active">HOME</a>
-      <a href="{{ url_for('home') }}#projects" class="nav-item">PROJECTS</a>
-      <a href="{{ url_for('list_all_posts') }}" class="nav-item">POST</a>
-
-      <!-- Ocultos por padrão -->
-      <button id="open-modal-btn" class="nav-item nav-btn" data-bs-toggle="modal" data-bs-target="#createPostModal" style="display: none;">CREATE POST</button>
-      <a id="account-btn" href="{{ url_for('account_management_page') }}" class="nav-item nav-btn" style="display: none;">MINHA CONTA</a>
-      <button id="logout-btn" class="nav-item nav-btn" style="display: none;">LOGOUT</button>
-
-      <!-- Visível por padrão -->
-      <button id="login-btn" type="button" class="nav-item nav-btn" data-bs-toggle="modal" data-bs-target="#loginModal">LOGIN</button>
-    </nav>
-  </div>
-</header>
+  </header>
 
   <main class="container">
     {% block content %}
