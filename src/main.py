@@ -2,6 +2,7 @@ import os
 from http import HTTPStatus
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -9,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.routers import comments as comments_router
-from src.routers import pages as pages_router  # Importação do novo roteador HTML
+from src.routers import pages as pages_router
 from src.routers import posts as posts_router
 from src.routers import users
 
@@ -26,7 +27,7 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 app.include_router(users.router)
 app.include_router(posts_router.router)
 app.include_router(comments_router.router)
-app.include_router(pages_router.router)  # Registro das rotas de páginas
+app.include_router(pages_router.router)
 
 
 @app.get("/site.webmanifest", include_in_schema=False)
@@ -63,7 +64,9 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     if request.url.path.startswith("/api"):
-        return JSONResponse(status_code=422, content={"detail": exc.errors()})
+        return JSONResponse(
+            status_code=422, content={"detail": jsonable_encoder(exc.errors())}
+        )
 
     return render_error_page(
         request,
@@ -79,13 +82,14 @@ async def generic_exception_handler(request: Request, exc: Exception):
             status_code=500, content={"detail": "Internal Server Error"}
         )
 
-
-@app.get("/", status_code=HTTPStatus.OK, include_in_schema=False)
-@app.get("/home", status_code=HTTPStatus.OK)
-def home(request: Request):
-    return templates.TemplateResponse(request=request, name="layout.html")
     return render_error_page(
         request,
         500,
         "Aconteceu um erro inesperado. Tente novamente em instantes.",
     )
+
+
+@app.get("/", status_code=HTTPStatus.OK, include_in_schema=False)
+@app.get("/home", status_code=HTTPStatus.OK)
+def home(request: Request):
+    return templates.TemplateResponse(request=request, name="layout.html")

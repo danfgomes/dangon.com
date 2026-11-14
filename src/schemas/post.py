@@ -29,6 +29,7 @@ class PostResponse(BaseModel):
     date_posted: datetime
     author_id: int
     author: UserPublic | None
+    image_file: str | None = None
 
 
 class PaginatedPostsResponse(BaseModel):

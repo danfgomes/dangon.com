@@ -136,7 +136,8 @@
         <strong>Adicione uma imagem</strong><br>
         <span class="text-muted small">PNG ou JPG, até 10 MB</span>
       </div>
-      <button type="button" class="upload-btn btn btn-outline-secondary mt-2">Escolher arquivo</button>
+      <input type="file" name="image" id="postImage" accept="image/png, image/jpeg" style="display: none;">
+      <button type="button" class="upload-btn btn btn-outline-secondary mt-2" onclick="document.getElementById('postImage').click()">Escolher arquivo</button>
     </div>
 
     <div class="topics-box">
@@ -147,11 +148,11 @@
           <option value="back-end">back-end</option>
           <option value="front-end">front-end</option>
           <option value="Devops">Devops</option>
-          <option value="IA e Machine Learning">IA e Machine Learning</option>
+          <option value="Ia e Machine Learning">IA e Machine Learning</option>
+          <option value="Geral">Geral</option>
         </select>
       </div>
     </div>
-  </div>
 
   <div class="modal-footer border-0">
     <button type="submit" class="publish-btn btn btn-primary w-25">Publicar &rarr;</button>
@@ -199,8 +200,8 @@
 </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-  <script type="module" src="/static/js/utils.js"></script>
-  <script type="module" src="/static/js/main.js"></script>
+  <script type="module" src="{{ url_for('static', path='/js/main.js') }}"></script>
+  <script type="module" src="{{ url_for('static', path='/js/posts.js') }}"></script>
 
   {% block scripts %}
   {% endblock %}

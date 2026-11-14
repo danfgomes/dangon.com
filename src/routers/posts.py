@@ -3,14 +3,19 @@ from typing import Annotated
 from fastapi import (
     APIRouter,
     Depends,
+    File,
+    Form,
     HTTPException,
     Query,
+    UploadFile,
     status,
 )
+from PIL import UnidentifiedImageError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from image_utils import delete_post_image, process_post_image
 from src.auth import get_admin_user
 from src.database import get_db
 from src.models import Post, User
@@ -29,11 +34,31 @@ router = APIRouter(
 
 @router.post("/", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
 async def create_post(
-    post: PostCreate,
+    title: Annotated[str, Form()],
+    content: Annotated[str, Form()],
+    category: Annotated[str, Form()],
+    image: Annotated[UploadFile | None, File()] = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_admin_user),
 ):
-    new_post = Post(**post.model_dump(), author_id=current_user.id)
+    post_data = PostCreate(title=title, content=content, category=category)
+
+    image_filename = None
+    if image and image.filename:
+        try:
+            image_bytes = await image.read()
+            image_filename = process_post_image(image_bytes)
+        except UnidentifiedImageError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Arquivo inválido. Envie uma imagem válida.",
+            )
+
+    new_post = Post(
+        **post_data.model_dump(),
+        author_id=current_user.id,
+        image_file=image_filename,
+    )
     db.add(new_post)
     await db.commit()
 
