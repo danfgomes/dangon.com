@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
     mail_use_tls: bool = True
     mail_from: str = "d.ferreiragomezz@gmail.com"
-
+    mail_from_name: str = "Daniele Ferreira Gomes"
     frontend_url: str = "http://localhost:8000"
 
 

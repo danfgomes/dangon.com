@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.config import settings
 from src.database import get_db
 from src.models import Post
 
@@ -33,25 +34,30 @@ async def home_page(request: Request, db: AsyncSession = Depends(get_db)):
 @router.get("/posts", status_code=status.HTTP_200_OK)
 async def list_all_posts(
     request: Request,
-    limit: int = Query(default=10, ge=1, le=50),
-    offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
 ):
-    posts_query = (
+
+    count_result = await db.execute(select(func.count()).select_from(Post))
+    total = count_result.scalar() or 0
+
+    result = await db.execute(
         select(Post)
         .options(selectinload(Post.author))
-        .order_by(Post.id.desc())
-        .limit(limit)
-        .offset(offset)
+        .order_by(Post.date_posted.desc())
+        .limit(settings.posts_per_page),
     )
-    result = await db.execute(posts_query)
+
     posts = result.scalars().all()
+
+    has_more = len(posts) < total
 
     return templates.TemplateResponse(
         request=request,
         name="posthome.html",
         context={
             "posts": posts,
+            "limit": settings.posts_per_page,
+            "has_more": has_more,
         },
     )
 

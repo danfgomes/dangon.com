@@ -66,16 +66,14 @@ async def create_post(
         select(Post).options(selectinload(Post.author)).where(Post.id == new_post.id)
     )
     result = await db.execute(query)
-    created_post = result.scalars().first()
-
-    return created_post
+    return result.scalars().first()
 
 
 @router.get("/", response_model=PaginatedPostsResponse, status_code=status.HTTP_200_OK)
 async def list_posts_api(
     db: Annotated[AsyncSession, Depends(get_db)],
     skip: Annotated[int, Query(ge=0)] = 0,
-    limit: Annotated[int, Query(ge=1, le=100)] = 10,
+    limit: Annotated[int, Query(ge=1, le=100)] = 5,
 ):
     count_result = await db.execute(select(func.count()).select_from(Post))
     total = count_result.scalar() or 0
@@ -89,17 +87,17 @@ async def list_posts_api(
     )
 
     result = await db.execute(posts_query)
-    db_posts = result.scalars().all()
 
-    # Converte cada modelo do SQLAlchemy (Post) para o Pydantic (PostResponse)
-    posts = [PostResponse.model_validate(post) for post in db_posts]
+    posts = result.scalars().all()
+
+    has_more = skip + len(posts) < total
 
     return PaginatedPostsResponse(
-        posts=posts,
+        posts=[PostResponse.model_validate(post) for post in posts],
         total=total,
         skip=skip,
         limit=limit,
-        has_more=(skip + limit) < total,
+        has_more=has_more,
     )
 
 
