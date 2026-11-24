@@ -15,6 +15,8 @@ templates = Jinja2Templates(directory="src/templates")
 
 @router.get("/", name="home")
 async def home_page(request: Request, db: AsyncSession = Depends(get_db)):
+    count_result = await db.execute(select(func.count()).select_from(Post))
+    total_posts = count_result.scalar() or 0
     query = (
         select(Post)
         .options(selectinload(Post.author))
@@ -27,7 +29,7 @@ async def home_page(request: Request, db: AsyncSession = Depends(get_db)):
     return templates.TemplateResponse(
         request=request,
         name="home.html",
-        context={"request": request, "posts": posts, "total_posts": len(posts)},
+        context={"request": request, "posts": posts, "total_posts": total_posts},
     )
 
 
