@@ -43,7 +43,16 @@ def process_post_image(content: bytes) -> str:
     with Image.open(BytesIO(content)) as original:
         img = ImageOps.exif_transpose(original)
 
-        img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
+        # Não amplia imagens menores que 1200px para evitar borrado
+        target_width = min(img.width, 1200)
+        target_height = int(target_width * (5 / 12))
+
+        img = ImageOps.fit(
+            img,
+            (target_width, target_height),
+            method=Image.Resampling.LANCZOS,
+            centering=(0.5, 0.5),
+        )
 
         if img.mode in ("RGBA", "LA", "P"):
             img = img.convert("RGB")
@@ -53,7 +62,8 @@ def process_post_image(content: bytes) -> str:
 
         POST_PICS_DIR.mkdir(parents=True, exist_ok=True)
 
-        img.save(filepath, "JPEG", quality=85, optimize=True)
+        # subsampling=0 preserva a nitidez máxima das cores e linhas
+        img.save(filepath, "JPEG", quality=95, subsampling=0, optimize=True)
 
         return filename
 
