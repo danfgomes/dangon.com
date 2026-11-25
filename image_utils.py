@@ -4,14 +4,17 @@ from pathlib import Path
 
 from PIL import Image, ImageChops, ImageOps
 
-
-
+# Diretórios separados para organização
 PROFILE_PICS_DIR = Path("src/static/images/")
+POST_PICS_DIR = Path("src/static/images/posts/")
 
+
+# --- LÓGICA DE FOTO DE PERFIL ---
 def process_profile_image(content: bytes) -> str:
     with Image.open(BytesIO(content)) as original:
         img = ImageOps.exif_transpose(original)
 
+        # Corta em quadrado 300x300
         img = ImageOps.fit(img, (300, 300), method=Image.Resampling.LANCZOS)
 
         if img.mode in ("RGBA", "LA", "P"):
@@ -26,10 +29,49 @@ def process_profile_image(content: bytes) -> str:
 
         return filename
 
+
 def delete_profile_image(filename: str | None):
     if filename is None:
         return
 
     filepath = PROFILE_PICS_DIR / filename
+    if filepath.exists():
+        filepath.unlink()
+
+
+def process_post_image(content: bytes) -> str:
+    with Image.open(BytesIO(content)) as original:
+        img = ImageOps.exif_transpose(original)
+
+        # Não amplia imagens menores que 1200px para evitar borrado
+        target_width = min(img.width, 1200)
+        target_height = int(target_width * (5 / 12))
+
+        img = ImageOps.fit(
+            img,
+            (target_width, target_height),
+            method=Image.Resampling.LANCZOS,
+            centering=(0.5, 0.5),
+        )
+
+        if img.mode in ("RGBA", "LA", "P"):
+            img = img.convert("RGB")
+
+        filename = f"post_{uuid.uuid4().hex}.jpg"
+        filepath = POST_PICS_DIR / filename
+
+        POST_PICS_DIR.mkdir(parents=True, exist_ok=True)
+
+        # subsampling=0 preserva a nitidez máxima das cores e linhas
+        img.save(filepath, "JPEG", quality=95, subsampling=0, optimize=True)
+
+        return filename
+
+
+def delete_post_image(filename: str | None):
+    if filename is None:
+        return
+
+    filepath = POST_PICS_DIR / filename
     if filepath.exists():
         filepath.unlink()

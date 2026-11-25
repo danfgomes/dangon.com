@@ -2,23 +2,17 @@ import os
 from http import HTTPStatus
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-
-
-from src.routers import comments as comments_router
-from src.routers import posts as posts_router
-from src.routers import users
-from src.routers import pages as pages_router  # Importação do novo roteador HTML
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-import src.models
-
+from src.routers import comments as comments_router
+from src.routers import pages as pages_router
+from src.routers import posts as posts_router
+from src.routers import users
 
 app = FastAPI()
 
@@ -33,7 +27,7 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 app.include_router(users.router)
 app.include_router(posts_router.router)
 app.include_router(comments_router.router)
-app.include_router(pages_router.router)  # Registro das rotas de páginas
+app.include_router(pages_router.router)
 
 
 @app.get("/site.webmanifest", include_in_schema=False)
@@ -54,14 +48,10 @@ def render_error_page(request: Request, status_code: int, message: str):
     )
 
 
-
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     if request.url.path.startswith("/api"):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail}
-        )
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
     detail = (
         exc.detail
@@ -75,8 +65,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     if request.url.path.startswith("/api"):
         return JSONResponse(
-            status_code=422,
-            content={"detail": exc.errors()}
+            status_code=422, content={"detail": jsonable_encoder(exc.errors())}
         )
 
     return render_error_page(
@@ -85,21 +74,22 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         "Os dados enviados estão incompletos ou inválidos. Verifique e tente novamente.",
     )
 
+
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
     if request.url.path.startswith("/api"):
         return JSONResponse(
-            status_code=500,
-            content={"detail": "Internal Server Error"}
+            status_code=500, content={"detail": "Internal Server Error"}
         )
 
-@app.get("/", status_code=HTTPStatus.OK, include_in_schema=False)
-@app.get("/home", status_code=HTTPStatus.OK)
-def home(request: Request):
-    return templates.TemplateResponse(request=request, name="layout.html")
     return render_error_page(
         request,
         500,
         "Aconteceu um erro inesperado. Tente novamente em instantes.",
     )
 
+
+@app.get("/", status_code=HTTPStatus.OK, include_in_schema=False)
+@app.get("/home", status_code=HTTPStatus.OK)
+def home(request: Request):
+    return templates.TemplateResponse(request=request, name="layout.html")

@@ -211,6 +211,18 @@
   margin-bottom: 18px;
 }
 
+.article-category {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #c2593f;
+  margin-bottom: 2px;
+}
+
+.article-meta {
+  font-size: 0.75rem;
+  color: #c2593f;
+}
+
 .archive-title {
   display: inline-block;
   background: #e8bf59;

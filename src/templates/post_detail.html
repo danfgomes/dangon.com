@@ -35,13 +35,15 @@
 
     </header>
 
+    {% if post.image_url or post.image_file %}
     <figure class="post-figure">
         {% if post.image_url %}
             <img src="{{ post.image_url }}" alt="{{ post.title }}" class="post-image">
-        {% else %}
-            <img src="{{ url_for('static', path='images/matrix.png') }}" alt=" " class="post-image">
+        {% elif post.image_file %}
+            <img src="{{ url_for('static', path='/images/posts/' + post.image_file) }}" alt="{{ post.title }}" class="post-image">
         {% endif %}
     </figure>
+    {% endif %}
 
     <!-- Conteúdo principal vindo do banco -->
     <div class="post-body">

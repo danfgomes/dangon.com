@@ -1,18 +1,19 @@
+import hashlib
+import secrets
 from datetime import UTC, datetime, timedelta
+from typing import cast
 
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import settings
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func, select
-from src.models import User
-from typing import cast
-from src.schemas.auth import TokenPayload
 from src.database import get_db
-
+from src.models import User
+from src.schemas.auth import TokenPayload
 
 password_hasher = PasswordHash.recommended()
 
@@ -27,6 +28,14 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return password_hasher.verify(plain_password, hashed_password)
+
+
+def generate_reset_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def hash_reset_token(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
@@ -61,7 +70,11 @@ def verify_access_token(token: str) -> TokenPayload | None:
 
 
 async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
-    user = (await db.execute(select(User).where(func.lower(User.email) == email.lower()))).scalars().first()
+    user = (
+        (await db.execute(select(User).where(func.lower(User.email) == email.lower())))
+        .scalars()
+        .first()
+    )
 
     if not user:
         verify_password(password, DUMMY_HASH)

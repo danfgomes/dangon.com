@@ -1,44 +1,59 @@
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile, status
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
-from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.security import OAuth2PasswordRequestForm
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func, select
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    Response,
+    UploadFile,
+    status,
+)
+from fastapi.responses import RedirectResponse
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.templating import Jinja2Templates
 from PIL import UnidentifiedImageError
+from sqlalchemy import delete, func, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
 
+from email_utils import send_password_reset_email
 from image_utils import delete_profile_image, process_profile_image
-
 from src.auth import (
     authenticate_user,
     create_access_token,
+    generate_reset_token,
     get_current_user,
     hash_password,
+    hash_reset_token,
+    verify_password,
 )
 from src.config import settings
 from src.database import get_db
-from src.models.user import User
-from src.schemas.auth import Token
+from src.models.user import PasswordResetToken, User
+from src.schemas.auth import (
+    ChangePasswordRequest,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+    Token,
+)
 from src.schemas.user import UserCreate, UserPrivate, UserPublic, UserUpdate
-
 
 router = APIRouter(
     prefix="/api/users",
     tags=["users"],
 )
 
-legacy_router = APIRouter(
-    prefix="/users",
-    tags=["legacy-users"],
-)
 
 templates = Jinja2Templates(directory="src/templates")
 
 
-@legacy_router.post("/create", response_model=UserPrivate, status_code=status.HTTP_200_OK)
+@router.post("/create", response_model=UserPrivate, status_code=status.HTTP_200_OK)
 async def legacy_create_user(
     user_in: UserCreate,
     db: AsyncSession = Depends(get_db),
@@ -66,8 +81,8 @@ async def legacy_create_user(
     return db_user
 
 
-@legacy_router.post("/login")
-async def legacy_login_user(
+@router.post("/login")
+async def login_user(
     response: Response,
     email: str = Form(...),
     password: str = Form(...),
@@ -77,7 +92,9 @@ async def legacy_login_user(
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect email or password")
 
-    token = create_access_token({"sub": str(user.id), "role": getattr(user, "role", "user")})
+    token = create_access_token(
+        {"sub": str(user.id), "role": getattr(user, "role", "user")}
+    )
     response.set_cookie(
         key="access_token",
         value=token,
@@ -90,25 +107,21 @@ async def legacy_login_user(
 
 @router.post("/create", response_model=UserPrivate, status_code=status.HTTP_201_CREATED)
 async def create_user(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
-    result_user = await db.execute(
-        select(User).where(func.lower(User.username) == user_in.username.lower())
+    query = select(User).where(
+        (func.lower(User.username) == user_in.username.lower())
+        | (func.lower(User.email) == user_in.email.lower())
     )
-    if result_user.scalars().first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already exists",
-        )
+    result = await db.execute(query)
+    existing_user = result.scalars().first()
 
-    result_email = await db.execute(
-        select(User).where(func.lower(User.email) == user_in.email.lower())
-    )
-    if result_email.scalars().first():
+    if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
+            detail="Email or username already registered",
         )
 
     hashed_password = hash_password(user_in.password)
+
     db_user = User(
         **user_in.model_dump(exclude={"password"}),
         password=hashed_password,
@@ -141,6 +154,140 @@ async def login_for_access_token(
 @router.get("/me", response_model=UserPrivate)
 async def get_current_user_in(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
+async def forgot_password(
+    request_data: ForgotPasswordRequest,
+    background_tasks: BackgroundTasks,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    result = await db.execute(
+        select(User).where(
+            func.lower(User.email) == request_data.email.lower(),
+        ),
+    )
+    user = result.scalars().first()
+
+    if user:
+        await db.execute(
+            delete(PasswordResetToken).where(
+                PasswordResetToken.user_id == user.id,
+            ),
+        )
+
+        token = generate_reset_token()
+        token_hash = hash_reset_token(token)
+        expires_at = datetime.now(UTC) + timedelta(
+            minutes=settings.reset_token_expiration_minutes
+        )
+
+        reset_token = PasswordResetToken(
+            user_id=user.id,
+            token_hash=token_hash,
+            expires_at=expires_at,
+        )
+        db.add(reset_token)
+        await db.commit()
+
+        background_tasks.add_task(
+            send_password_reset_email,
+            to_email=user.email,
+            username=user.username,
+            token=token,
+        )
+
+    return {
+        "message": "If an account exists with this email, you will receive password reset instructions."
+    }
+
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+async def reset_password(
+    request_data: ResetPasswordRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    token_hash = hash_reset_token(request_data.token)
+
+    result = await db.execute(
+        select(PasswordResetToken).where(
+            PasswordResetToken.token_hash == token_hash,
+        ),
+    )
+    reset_token = result.scalars().first()
+
+    if not reset_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token",
+        )
+
+    if reset_token.expires_at < datetime.now(UTC):
+        await db.delete(reset_token)
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token",
+        )
+
+    result = await db.execute(
+        select(User).where(User.id == reset_token.user_id),
+    )
+    user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token",
+        )
+
+    user.password = hash_password(request_data.new_password)
+
+    await db.execute(
+        delete(PasswordResetToken).where(
+            PasswordResetToken.user_id == user.id,
+        ),
+    )
+
+    await db.commit()
+    return {
+        "message": "Password reset successfully. You can now log in with your new password."
+    }
+
+
+## change_password endpoint
+@router.patch("/me/password", status_code=status.HTTP_200_OK)
+async def change_password(
+    password_data: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if not verify_password(password_data.current_password, current_user.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+
+    current_user.password = hash_password(password_data.new_password)
+
+    await db.execute(
+        delete(PasswordResetToken).where(
+            PasswordResetToken.user_id == current_user.id,
+        ),
+    )
+
+    await db.commit()
+    return {"message": "Password changed successfully"}
+
+
+## main.py template routes
+@router.get("/forgot-password", include_in_schema=False)
+async def forgot_password_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "forgot_password.html",
+        {"title": "Forgot Password"},
+    )
 
 
 @router.patch("/{user_id}", response_model=UserPrivate)
@@ -237,6 +384,7 @@ async def upload_profile_picture(
     current_user.image_file = new_filename
     db.add(current_user)
     await db.commit()
+
     await db.refresh(current_user)
 
     if old_filename:

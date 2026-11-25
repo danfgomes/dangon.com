@@ -1,14 +1,16 @@
 from __future__ import annotations
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, ForeignKey, DateTime, Text
-from src.database import Base
+
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
+from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from src.database import Base
 
 if TYPE_CHECKING:
-    from src.models.user import User
     from src.models.comment import Comment
+    from src.models.user import User
 
 
 class Post(Base):
@@ -18,6 +20,9 @@ class Post(Base):
     category: Mapped[str] = mapped_column(String(50))
     reading_time_min: Mapped[int] = mapped_column(nullable=False, default=5)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
+    image_file: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, default=None
+    )
     content: Mapped[str] = mapped_column(Text, nullable=False)
     author_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"),
