@@ -8,8 +8,6 @@
   font-family: 'Merriweather', serif;
 }
 
-
-
 body {
   background-color: antiquewhite;
   color: #1a1a1a;
@@ -36,7 +34,7 @@ a {
 }
 
 /* ==========================================================================
-   2. NAVBAR (HEADER)
+2. NAVBAR (HEADER)
    ========================================================================== */
 .navbar-wrapper {
   background-color: #e3d8c4ab;
@@ -57,6 +55,7 @@ a {
   font-size: 1.7rem;
   letter-spacing: 1px;
 }
+
 .text-muted {
   color: #676e75 !important;
 }
@@ -76,10 +75,12 @@ a {
 
 .nav-links {
   display: flex;
+  align-items: center;
   gap: 15px;
 }
 
 .nav-item {
+  position: relative;
   font-size: 0.75rem;
   font-weight: 700;
   padding: 10px 12px;
@@ -89,41 +90,59 @@ a {
   background-color: #E3D5BE36;
   border: none;
   outline: none;
+  cursor: pointer;
+}
+
+.nav-links .nav-item::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 5px;
+  height: 2px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+
+.nav-links .nav-item:hover::after {
+  transform: scaleX(1);
 }
 
 .logo-container {
-    display: flex;
-    align-items: center;
-    font-size: 1.4rem;
-    font-weight: 560;
+  display: flex;
+  align-items: center;
+  font-size: 1.4rem;
+  font-weight: 560;
 }
 
 .header-profile-img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 15px;
-    display: flex;
-    align-items: center;
-    object-fit: cover;
-    font-size: 1.8rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  object-fit: cover;
+  font-size: 1.8rem;
 }
 
 #login-btn {
-    border: none;
-    outline: none;
-    background-color: transparent;
-    box-shadow: none;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  box-shadow: none;
 }
 
 #login-btn:hover {
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 /* ==========================================================================
-   3. FOOTER
+3. FOOTER
    ========================================================================== */
 .footer-wrapper {
   width: 100%;
@@ -172,7 +191,7 @@ a {
 }
 
 /* ==========================================================================
-   4. MODAL DE LOGIN
+4. MODAL DE LOGIN
    ========================================================================== */
 .login-page {
   display: flex;
@@ -302,7 +321,7 @@ a {
 }
 
 /* ==========================================================================
-   5. MODAL DE CRIAR PUBLICAÇÃO
+5. MODAL DE CRIAR PUBLICAÇÃO
    ========================================================================== */
 .modal-header {
   display: flex;
@@ -315,10 +334,10 @@ a {
   background-color: #E3D5BE36;
   color: #000000;
   border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 700;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -578,7 +597,7 @@ a {
 }
 
 /* ==========================================================================
-   6. MODAIS DE FEEDBACK (SUCESSO E ERRO)
+6. MODAIS DE FEEDBACK (SUCESSO E ERRO)
    ========================================================================== */
 .modal-bege {
   background-color: #f7f5f0 !important;
@@ -587,24 +606,22 @@ a {
 }
 
 .modal-bege-header {
-  background-color: #f7f5f0 !important; /* Bege escuro para o cabeçalho */
+  background-color: #f7f5f0 !important;
   border-bottom: 1px solid #ded1b8 !important;
 }
 
 .modal-bege .modal-body {
-  background-color: #fbfbfb  !important; /* Bege claro forçado no meio */
+  background-color: #fbfbfb !important;
   color: #1a1a1a !important;
 }
 
 .modal-bege .modal-footer {
-  background-color: #f7f5f0 !important; /* Bege claro forçado no rodapé */
+  background-color: #f7f5f0 !important;
   border-top: 1px solid #ded1b8 !important;
 }
 
-
 .modal-footer {
   background-color: whitesmoke !important;
-
 }
 
 .form-select {
@@ -612,6 +629,7 @@ a {
   border: 1px solid #e3dfd6 !important;
   color: #1a1a1a !important;
 }
+
 .upload-box {
   background-color: #faf8f5 !important;
   border: 1px solid #e5ded3 !important;
